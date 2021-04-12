@@ -1,10 +1,29 @@
 # $Id$
 
-set(CMAKE_VERBOSE_MAKEFILE ON)
-
 cmake_minimum_required(VERSION 3.14)
 
-project(tst LANGUAGES CXX)
+#set(CMAKE_VERBOSE_MAKEFILE ON)
+
+set(PLATFORM mips-openwrt-linux-musl)
+set(OPENWRT_DIR  /work/projects/openwrt/openwrt-18.06.9)
+set(STAGING_DIR ${OPENWRT_DIR}/git/staging_dir)
+set(SET_ENV env STAGING_DIR=${STAGING_DIR})
+set(CMAKE_CXX_COMPILER ${SET_ENV} ${STAGING_DIR}/toolchain-mips_24kc_gcc-7.3.0_musl/bin/${PLATFORM}-g++)
+set(CMAKE_STRIP ${SET_ENV} ${STAGING_DIR}/toolchain-mips_24kc_gcc-7.3.0_musl/bin/${PLATFORM}-strip)
+
+
+set(Qt5_DIR ${OPENWRT_DIR}/sysroot/opt/Qt-mips-5.15.2-release/lib/cmake/Qt5)
+set(QT_DIR  ${Qt5_DIR})
+
+#set(ENV{STAGING_DIR} ${STAGING_DIR})
+#message("STAGING_DIR=[$ENV{STAGING_DIR}]")
+
+#link_directories(/usr/${PLATFORM}/lib /lib/${PLATFORM})
+
+set(PROJECT_NAME "tst")
+project(${PROJECT_NAME} LANGUAGES CXX)
+set(PROJECT_UNSTRIPPED ${PROJECT_NAME}-unstripped)
+
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -23,8 +42,42 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 file(GLOB SOURCES *.cpp)
 file(GLOB HEADERS include/*.h)
 
-add_executable(tst
+add_executable(${PROJECT_UNSTRIPPED}
   ${SOURCES}
   ${HEADERS}
 )
-target_link_libraries(tst Qt${QT_VERSION_MAJOR}::Core)
+
+target_link_libraries(${PROJECT_UNSTRIPPED}
+    Qt${QT_VERSION_MAJOR}::Core
+)
+
+add_custom_command(
+    TARGET ${PROJECT_UNSTRIPPED} POST_BUILD
+    COMMAND ${CMAKE_STRIP} ${PROJECT_UNSTRIPPED} -o ${PROJECT_NAME}
+    COMMENT "Strip ${PROJECT_NAME}"
+)
+
+add_custom_target(strip
+    DEPENDS ${PROJECT_UNSTRIPPED}
+    COMMAND ${CMAKE_STRIP} ${PROJECT_UNSTRIPPED} -o ${PROJECT_NAME}
+    COMMENT "Strip ${PROJECT_NAME}"
+)
+
+install(
+    DIRECTORY DESTINATION ${OPENWRT_DIR}/nfs
+)
+
+install(
+    PROGRAMS ${PROJECT_BINARY_DIR}/${PROJECT_NAME}
+    DESTINATION ${OPENWRT_DIR}/nfs
+)
+
+#set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES
+#    ${PROJECT_NAME}
+#)
+
+set_property(
+        TARGET strip
+        APPEND
+        PROPERTY ADDITIONAL_CLEAN_FILES ${PROJECT_NAME}
+)
