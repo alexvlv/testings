@@ -53,14 +53,22 @@ target_link_libraries(${PROJECT_UNSTRIPPED}
 
 add_custom_command(
     TARGET ${PROJECT_UNSTRIPPED} POST_BUILD
+    COMMAND ${CMAKE_BUILD_TOOL} ${PROJECT_NAME}
+)
+
+add_custom_target(strip
+    DEPENDS ${PROJECT_NAME}
+)
+
+add_custom_target(${PROJECT_NAME}
+    DEPENDS ${PROJECT_UNSTRIPPED}
     COMMAND ${CMAKE_STRIP} ${PROJECT_UNSTRIPPED} -o ${PROJECT_NAME}
     COMMENT "Strip ${PROJECT_NAME}"
 )
 
-add_custom_target(strip
-    DEPENDS ${PROJECT_UNSTRIPPED}
-    COMMAND ${CMAKE_STRIP} ${PROJECT_UNSTRIPPED} -o ${PROJECT_NAME}
-    COMMENT "Strip ${PROJECT_NAME}"
+add_custom_command(
+    TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_BUILD_TOOL} install
 )
 
 install(
@@ -71,10 +79,6 @@ install(
     PROGRAMS ${PROJECT_BINARY_DIR}/${PROJECT_NAME}
     DESTINATION ${OPENWRT_DIR}/nfs
 )
-
-#set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES
-#    ${PROJECT_NAME}
-#)
 
 set_property(
         TARGET strip
