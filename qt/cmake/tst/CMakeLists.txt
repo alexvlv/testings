@@ -81,3 +81,8 @@ set_property(
         APPEND
         PROPERTY ADDITIONAL_CLEAN_FILES ${PROJECT_NAME}
 )
+
+add_custom_target(distclean
+   COMMAND ${CMAKE_BUILD_TOOL} clean
+   COMMAND ${CMAKE_COMMAND} -P ${CMAKE_SOURCE_DIR}/scripts/distclean.cmake
+)
