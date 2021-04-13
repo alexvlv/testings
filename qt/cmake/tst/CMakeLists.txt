@@ -15,6 +15,8 @@ set(CMAKE_STRIP ${SET_ENV} ${STAGING_DIR}/toolchain-mips_24kc_gcc-7.3.0_musl/bin
 set(Qt5_DIR ${OPENWRT_DIR}/sysroot/opt/Qt-mips-5.15.2-release/lib/cmake/Qt5)
 set(QT_DIR  ${Qt5_DIR})
 
+set(GIT_HEADER ".git.h")
+
 #set(ENV{STAGING_DIR} ${STAGING_DIR})
 #message("STAGING_DIR=[$ENV{STAGING_DIR}]")
 
@@ -42,7 +44,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 file(GLOB SOURCES *.cpp)
 file(GLOB HEADERS include/*.h)
 
-add_executable(${PROJECT_UNSTRIPPED}
+add_executable(${PROJECT_UNSTRIPPED} #EXCLUDE_FROM_ALL
   ${SOURCES}
   ${HEADERS}
 )
@@ -81,12 +83,29 @@ install(
 )
 
 set_property(
-        TARGET strip
-        APPEND
-        PROPERTY ADDITIONAL_CLEAN_FILES ${PROJECT_NAME}
+    TARGET ${PROJECT_NAME}
+    APPEND
+    PROPERTY ADDITIONAL_CLEAN_FILES ${PROJECT_NAME} ${GIT_HEADER}
 )
 
 add_custom_target(distclean
-   COMMAND ${CMAKE_BUILD_TOOL} clean
-   COMMAND ${CMAKE_COMMAND} -P ${CMAKE_SOURCE_DIR}/scripts/distclean.cmake
+    COMMAND ${CMAKE_BUILD_TOOL} clean
+    COMMAND ${CMAKE_COMMAND} -P ${CMAKE_SOURCE_DIR}/scripts/distclean.cmake
 )
+
+add_custom_target(${GIT_HEADER}
+    COMMAND [ -e ${GIT_HEADER} ] && grep VERSION ${GIT_HEADER} | cut -f3- -d' ' || sh ${CMAKE_SOURCE_DIR}/scripts/git.sh
+)
+add_dependencies( ${PROJECT_UNSTRIPPED} ${GIT_HEADER} )
+
+add_custom_target(git
+    COMMAND rm -f ${GIT_HEADER}
+    COMMAND ${CMAKE_BUILD_TOOL} ${GIT_HEADER}
+)
+
+add_custom_target(gitupd
+    COMMAND ${CMAKE_BUILD_TOOL} git
+    COMMAND ${CMAKE_BUILD_TOOL} all
+)
+
+#include_directories(${CMAKE_CURRENT_BINARY_DIR})

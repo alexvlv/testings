@@ -7,6 +7,7 @@ set(cmake_generated
     ${CMAKE_BINARY_DIR}/CMakeFiles
     ${CMAKE_BINARY_DIR}/.cmake
     ${CMAKE_BINARY_DIR}/install_manifest.txt
+    ${CMAKE_BINARY_DIR}/.git.h
 )
 
 foreach(file ${cmake_generated})
