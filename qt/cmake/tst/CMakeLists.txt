@@ -8,7 +8,7 @@ set(PLATFORM mips-openwrt-linux-musl)
 set(OPENWRT_DIR  /work/projects/openwrt/openwrt-18.06.9)
 set(STAGING_DIR ${OPENWRT_DIR}/git/staging_dir)
 set(SET_ENV env STAGING_DIR=${STAGING_DIR})
-set(CMAKE_CXX_COMPILER ${SET_ENV} ${STAGING_DIR}/toolchain-mips_24kc_gcc-7.3.0_musl/bin/${PLATFORM}-g++)
+set(CMAKE_CXX_COMPILER "${SET_ENV} ${STAGING_DIR}/toolchain-mips_24kc_gcc-7.3.0_musl/bin/${PLATFORM}-g++")
 set(CMAKE_STRIP ${SET_ENV} ${STAGING_DIR}/toolchain-mips_24kc_gcc-7.3.0_musl/bin/${PLATFORM}-strip)
 
 
@@ -16,13 +16,17 @@ set(Qt5_DIR ${OPENWRT_DIR}/sysroot/opt/Qt-mips-5.15.2-release/lib/cmake/Qt5)
 set(QT_DIR  ${Qt5_DIR})
 
 set(GIT_HEADER ".git.h")
+set(GIT_HEADER ".git.h")
 
 #set(ENV{STAGING_DIR} ${STAGING_DIR})
 #message("STAGING_DIR=[$ENV{STAGING_DIR}]")
 
 #link_directories(/usr/${PLATFORM}/lib /lib/${PLATFORM})
 
-set(PROJECT_NAME "tst")
+get_filename_component(APP_NAME ${CMAKE_SOURCE_DIR} NAME)
+message("Target project name: [${APP_NAME}]")
+
+set(PROJECT_NAME  ${APP_NAME})
 project(${PROJECT_NAME} LANGUAGES CXX)
 set(PROJECT_UNSTRIPPED ${PROJECT_NAME}-unstripped)
 
