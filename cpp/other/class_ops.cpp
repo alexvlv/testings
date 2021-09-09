@@ -43,15 +43,19 @@ private: \
 
 CLASS(Macro)
 
+#define PRNDESCPRIMO() \
+{std::cerr << __PRETTY_FUNCTION__ << ':' << desc << ':' << static_cast<const void *>(this->desc.data()) << ':' << static_cast<const void *>(this->vector.data()) << std::endl;}
+
 class Primo 
 {
 public:
-	CONSTRUCTOR(Primo)
-	CONSTRUCTORCOPY(Primo)
-	CONSTRUCTORMOVE(Primo)
-	DESTRUCTOR(Primo)
+	Primo(std::string desc = "Primo_default"):desc(desc),vector{1,2,3}{ PRNDESCPRIMO(); }
+	Primo(const Primo &from):desc(from.desc),vector(from.vector){ PRNDESCPRIMO(); }
+	Primo(Primo &&from):desc(std::move(from.desc)),vector(std::move(from.vector)){ PRNDESCPRIMO(); }
+	~Primo(){ PRNDESCPRIMO();}
 private:
 	DESRIPT(Primo)
+	std::vector<int> vector;
 };
 
 class Secundo 
@@ -59,11 +63,11 @@ class Secundo
 public:
 	CONSTRUCTOR(Secundo)
 	Secundo(const Secundo &from):desc(from.desc),mprimo(from.mprimo){ PRNDESC(); }
-	Secundo(const Secundo &&from):desc(std::move(from.desc)),mprimo(std::move(from.mprimo)){ PRNDESC(); }
+	Secundo(Secundo &&from):desc(std::move(from.desc)),mprimo(std::move(from.mprimo)){ PRNDESC(); }
 	DESTRUCTOR(Secundo)
 private:
 	DESRIPT(Secundo)
-	Primo mprimo {"member"};
+	Primo mprimo;
 };
  
 int main()
