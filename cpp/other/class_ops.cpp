@@ -1,7 +1,7 @@
 /*
 $Id$
 
-g++ class_rvalue.cpp -std=c++11 -o class_rvalue && ./class_rvalue
+g++ class_ops.cpp -std=c++11 -o class_ops && ./class_ops
 
 */
 
