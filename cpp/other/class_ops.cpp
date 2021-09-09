@@ -73,10 +73,17 @@ int main()
 		Primo primo;
 		Primo primocopy = primo;
 	}	
-	if(true) {	
+	if(false) {	
 		std::cerr << "====" << std::endl;
 		Secundo secundo;
 		Secundo seccopy = secundo;
+		Secundo moved = std::move(secundo);
+	}	
+	if(true) {	
+		std::cerr << "====" << std::endl;
+		Secundo secundo {xstr(secundo)};
+		Secundo moved = std::move(secundo);
+		std::cerr << "++++" << std::endl;
 	}	
 	return 0;
 }
