@@ -24,6 +24,11 @@ g++ class_ops.cpp -std=c++11 -o class_ops && ./class_ops
 #define CONSTRUCTOR(NAME) \
 NAME(std::string desc = #NAME"_default"):desc(desc){ PRNDESC(); }
 #define DESTRUCTOR(NAME) ~NAME(){ PRNDESC();}
+#define CONSTRUCTORCOPY(NAME) \
+NAME(const NAME &from):desc(from.desc){ PRNDESC(); }
+#define CONSTRUCTORMOVE(NAME) \
+NAME(const NAME &&from):desc(std::move(from.desc)){ PRNDESC(); }
+
 #define DESRIPT(NAME) std::string desc = #NAME"~~~~~~";
 
 #define CLASS(NAME) \
@@ -42,6 +47,8 @@ class Primo
 {
 public:
 	CONSTRUCTOR(Primo)
+	CONSTRUCTORCOPY(Primo)
+	CONSTRUCTORMOVE(Primo)
 	DESTRUCTOR(Primo)
 private:
 	DESRIPT(Primo)
@@ -51,6 +58,8 @@ class Secundo
 {
 public:
 	CONSTRUCTOR(Secundo)
+	Secundo(const Secundo &from):desc(from.desc),mprimo(from.mprimo){ PRNDESC(); }
+	Secundo(const Secundo &&from):desc(std::move(from.desc)),mprimo(std::move(from.mprimo)){ PRNDESC(); }
 	DESTRUCTOR(Secundo)
 private:
 	DESRIPT(Secundo)
@@ -82,7 +91,8 @@ int main()
 	if(true) {	
 		std::cerr << "====" << std::endl;
 		Secundo secundo {xstr(secundo)};
-		Secundo moved = std::move(secundo);
+		//Secundo moved = std::move(secundo);
+		Secundo moved (std::move(secundo));
 		std::cerr << "++++" << std::endl;
 	}	
 	return 0;
