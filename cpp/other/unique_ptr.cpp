@@ -29,17 +29,41 @@ public:
 	Primo(std::string desc = "Primo_default"):desc(desc),vector{1,2,3}{ PRNDESCPRIMO(); }
 	Primo(const Primo &from):desc(from.desc),vector(from.vector){ PRNDESCPRIMO(); }
 	Primo(Primo &&from):desc(std::move(from.desc)),vector(std::move(from.vector)){ PRNDESCPRIMO(); }
+	Primo& operator =(const Primo &from) { 
+		desc = from.desc + "_copy"; vector = from.vector;
+		PRNDESCPRIMO(); 
+		return *this;
+	}
 	~Primo(){ PRNDESCPRIMO();}
 private:
 	DESRIPT(Primo)
 	std::vector<int> vector;
+	friend std::ostream& operator<<(std::ostream& os, const Primo& pr);
 };
+
+std::ostream& operator<<(std::ostream& os, const Primo& pr)
+{
+	os <<  __PRETTY_FUNCTION__ << ':' << pr.desc << ':' << static_cast<const void *>(pr.desc.data()) << ':' << static_cast<const void *>(pr.vector.data());
+	return os;
+}
+
+static Primo create_class()
+{
+	Primo prm{__PRETTY_FUNCTION__};
+	return prm;
+}
 
 int main()
 {
 	std::cerr << "Smart pointers test" << std::endl
 		<< "$Id$" << std::endl
 		<<"Compiled: " __DATE__ " " __TIME__ << std::endl;
+	
+	if(true) {
+		//const Primo& pr = create_class();
+		Primo&& pr = create_class();
+		std::cerr << pr << std::endl;
+	}
 	
 	if(true) {	
 		std::cerr << "====" << std::endl;
