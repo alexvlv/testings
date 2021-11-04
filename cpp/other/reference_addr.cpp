@@ -1,3 +1,10 @@
+/*
+$Id$
+
+g++ reference_addr.cpp -std=c++14 -o reference_addr && ./reference_addr
+
+*/
+
 #include <iostream>
 #include <string>
 #include <vector>
@@ -14,7 +21,12 @@ std::ostream& operator<<(std::ostream& os, const std::vector<T>& vec)
 
 int main()
 {
-    std::vector<std::string> vec = {
+    
+	std::cerr << "Class create/copy/move test" << std::endl
+		<< "$Id$" << std::endl
+		<<"Compiled: " __DATE__ " " __TIME__ << std::endl;
+	
+	std::vector<std::string> vec = {
         "Hello", "from", "GCC", __VERSION__, "!" 
     };
     
