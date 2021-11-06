@@ -11,7 +11,7 @@ g++ class_ops.cpp -std=c++11 -o class_ops && ./class_ops
 #include <sstream>
 #include <iterator>
 #include <limits>
-#include <stdlib.h>
+#include <cstdlib>
 #include <vector>
 #include <cassert>
 

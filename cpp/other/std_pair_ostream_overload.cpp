@@ -13,7 +13,7 @@ g++ std_pair_ostream_overload.cpp -std=c++11 -o ostream && ./ostream
 #include <sstream>
 #include <iterator>
 #include <limits>
-#include <stdlib.h>
+#include <cstdlib>
 #include <vector>
 #include <cassert>
 

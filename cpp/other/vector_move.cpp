@@ -11,7 +11,7 @@ g++ vector_move.cpp -std=c++11 -o vector_move && ./vector_move
 #include <sstream>
 #include <iterator>
 #include <limits>
-#include <stdlib.h>
+#include <cstdlib>
 #include <vector>
 #include <cassert>
 

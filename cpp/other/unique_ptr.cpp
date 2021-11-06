@@ -13,7 +13,7 @@ g++ unique_ptr.cpp -std=c++14 -o unique_ptr && ./unique_ptr
 #include <limits>
 #include <memory>
 #include <sstream>
-#include <stdlib.h>
+#include <cstdlib>
 #include <vector>
 
 #define xstr(s)   str(s)
