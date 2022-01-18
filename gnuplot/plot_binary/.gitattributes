@@ -1,0 +1,10 @@
+# http://davidlaing.com/2012/09/19/customise-your-gitattributes-to-become-a-git-ninja/
+* text eol=auto
+
+*.plt text
+*.plt ident
+
+.gitattributes export-ignore
+.gitignore export-ignore
+
+
