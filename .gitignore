@@ -40,6 +40,8 @@ obj*/
 #Linux kernel & modules 
 *.ko
 *.mod.c
+*.mod
+modules.order
 modules.builtin
 Module.symvers
 
