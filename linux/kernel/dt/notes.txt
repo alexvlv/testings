@@ -1,0 +1,4 @@
+# $Id$
+
+# Reverse dtb => dts:
+dtc -Idtb -Odts test.dtb -o test_r.dts

@@ -22,7 +22,7 @@ source_dirs := .
 include_dirs += $(KERNEL_SRC)/include
 include_dirs += $(KERNEL_SRC)/arch/arm64/boot/dts/freescale
 
-SOURCES := $(wildcard   $(addsuffix /*.dts, $(source_dirs) ) )
+SOURCES := $(wildcard   $(addsuffix /*.dts, $(source_dirs)) )
 TARGETS := $(SOURCES:.dts=.dtb)  
 
 export CPP := $(COMMAND_PREFIX)cpp
@@ -38,15 +38,23 @@ O := $(PWD)
 export BUILDDIR = $(O)
 
 obj_dir := $(BUILDDIR)/obj
+REVERSES := $(addprefix $(obj_dir)/,$(SOURCES))
 
 install: $(obj_dir) $(TARGETS) $(INSTALL_DIR)
 	$(QUIET) echo "Install $(TARGETS) to [$(INSTALL_DIR)] ..." 
 	$(QUIET) cp -f $(TARGETS) $(INSTALL_DIR)
 
+.PHONY: reverse
+reverse: $(obj_dir) $(REVERSES)
+
+$(obj_dir)/%.dts:%.dtb
+	@echo Decompiling $@ from $< ...
+	$(QUIET) $(DTC) -Idtb -Odts $(DTCLAGS) $< -o $@
+
 %.dtb:%.dts
 	@echo Compiling $@ from $< ...
 	$(QUIET) $(CPP) $(CPPLAGS) $(addprefix -I,$(include_dirs))  $< > $(obj_dir)/$*.pre
-	$(QUIET) $(DTC) -Idts -Odtb $(DTCLAGS) -@ $(obj_dir)/$*.pre -o $@
+	$(QUIET) $(DTC) -Idts -Odtb $(DTCLAGS) $(obj_dir)/$*.pre -o $@
 
 $(INSTALL_DIR):
 	$(QUIET) echo "Creating install directory: [$@]..."
