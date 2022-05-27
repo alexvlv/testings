@@ -44,6 +44,9 @@ obj*/
 modules.order
 modules.builtin
 Module.symvers
+# Device tree blobs
+*.dtb
+
 
 # Kdevelop4
 #!.kdev4 
