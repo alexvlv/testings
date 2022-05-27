@@ -1,0 +1,12 @@
+
+#include "imx8mm-evk.dts"
+
+/ {
+	node {
+		a-string-property = "A string";
+		foo = <3>;
+		label = "NODE";
+	};
+};
+
+
