@@ -17,6 +17,11 @@ TARGET := $(notdir $(patsubst %/,%,$(MAKEFILE_DIR)))
 override KDIR_LNK="$(MAKEFILE_DIR)/.kdir"
 export KDIR  = $(shell readlink -f $(KDIR_LNK) 2>/dev/null)
 
+# /lib/modules/$(KERNELRELEASE)/extra
+# /lib/modules/$(shell uname -r)/extra
+override INSTALL_LNK="$(MAKEFILE_DIR)/.install"
+INSTALL_DIR  = $(shell readlink -f $(INSTALL_LNK) 2>/dev/null)
+
 MAKEFLAGS += --no-print-directory
 # build quietly by default.  For a verbose build, run "make V=1"
 ifndef V
@@ -40,7 +45,11 @@ endef
 obj-m      += $(TARGET).o
 $(TARGET)-objs := $(addsuffix .o, $(SRC) )
 
-target: $(GITREVFILE) $(THIS_MAKEFILE) $(addsuffix .c, $(SRC) )
+install: $(TARGET).ko $(INSTALL_DIR)
+	$(QUIET) echo "Install $(TARGET).ko to [$(INSTALL_DIR)] ..." 
+	$(QUIET) cp -f $(TARGET).ko $(INSTALL_DIR)
+
+$(TARGET).ko: $(GITREVFILE) $(THIS_MAKEFILE) $(addsuffix .c, $(SRC) )
 	$(QUIET) $(MAKE) -j$(shell nproc) -C $(KDIR) M=$(PWD) $(TARGET).ko
 
 .PHONY: git
@@ -51,6 +60,9 @@ git:
 $(GITREVFILE):
 	$(QUIET) $(value gitrev)
 
+$(INSTALL_DIR):
+	$(QUIET) echo "Creating install directory: [$@]..."
+	$(QUIET) mkdir -p $@
 	
 clean:
 	$(QUIET) rm -f  $(TARGET).ko *.o .*.cmd *.mod.c *.mod *.*~ *.symvers modules.order; 

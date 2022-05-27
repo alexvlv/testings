@@ -27,13 +27,13 @@ $Id$
 
 static int __init_module(void)
 {
-  INFO("Init done (GIT Rev." VERSION ") [" __TIME__ " " __DATE__ "]\n");
+  INFO("Init done (GIT Rev." VERSION ") [Build: " __TIME__ " " __DATE__ "]\n");
   return 0;
 }
 //-------------------------------------------------------------------------
 static void __exit_module(void)
 {
-  INFO("Unloaded (GIT Rev." VERSION ")[" __TIME__ " " __DATE__ "]\n" );
+  INFO("Unloaded (GIT Rev." VERSION ") [Build: " __TIME__ " " __DATE__ "]\n" );
 }
 //-------------------------------------------------------------------------
 module_init(__init_module);
@@ -41,3 +41,6 @@ module_exit(__exit_module);
 MODULE_DESCRIPTION("Test module");
 MODULE_AUTHOR("AlexVol");
 MODULE_LICENSE("GPL");
+
+// to suppress "loading out-of-tree module taints kernel." warning
+MODULE_INFO(intree,"Y");
