@@ -18,10 +18,12 @@ $Id$
 #include <linux/uaccess.h>
 #include <linux/version.h>
 
+static int __dbglvl = 2;
 
 static int __init_module(void)
 {
   INFO("Init done (GIT Rev." VERSION ") [Build: " __TIME__ " " __DATE__ "]");
+  TRACE("tracing here...");
   return 0;
 }
 //-------------------------------------------------------------------------
