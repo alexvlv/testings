@@ -1,4 +1,8 @@
 # $Id$
+# $HeadURL: http://server/svn/207_ForeMost/ForeMost-AT/trunk/Firmware/ARM_TCPIP/drv/dmap/Makefile $
+# $LastChangedRevision: 1280 $
+# $LastChangedDate: 2016-07-08 11:53:36 +0300 (Пт, 08 июл 2016) $
+# $LastChangedBy: alexvol $
 
 THIS_MAKEFILE := $(lastword $(MAKEFILE_LIST))
 export MAKEFILE_DIR := $(realpath $(dir $(THIS_MAKEFILE)))
@@ -41,15 +45,11 @@ endef
 obj-m      += $(TARGET).o
 $(TARGET)-objs := $(addsuffix .o, $(SRC) )
 
-
-INCLUDES := $(wildcard   $(addsuffix /*.h, $(PWD)) )
-SOURCES := $(addsuffix .c, $(SRC) )
-
 install: $(TARGET).ko $(INSTALL_DIR)
 	$(QUIET) echo "Install $(TARGET).ko to [$(INSTALL_DIR)] ..." 
 	$(QUIET) cp -f $(TARGET).ko $(INSTALL_DIR)
 
-$(TARGET).ko: $(GITREVFILE) $(THIS_MAKEFILE) $(SOURCES)  $(INCLUDES)
+$(TARGET).ko: $(GITREVFILE) $(THIS_MAKEFILE) $(addsuffix .c, $(SRC) )
 	$(QUIET) $(MAKE) -j$(shell nproc) -C $(KDIR) M=$(PWD) $(TARGET).ko
 
 .PHONY: git
@@ -67,3 +67,4 @@ $(INSTALL_DIR):
 clean:
 	$(QUIET) rm -f  $(TARGET).ko *.o .*.cmd *.mod.c *.mod *.*~ *.symvers modules.order; 
 	$(QUIET) rm -f -r .tmp_versions $(GITREVFILE)
+  

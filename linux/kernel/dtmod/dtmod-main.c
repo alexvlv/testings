@@ -2,10 +2,16 @@
 $Id$
 ***************************************************************************/
 
-#define DEVICE  "test"
+#define DEVICE  "tstdt"
+
+#define TRACE(...) { if(dbg>1) printk ( KERN_DEBUG "-T- " DEVICE ": "  __VA_ARGS__);  } 
+#define DBG(...) {   if(dbg) printk ( KERN_DEBUG "-D- " DEVICE ": "  __VA_ARGS__);  } 
+#define INFO(...) {  printk(KERN_INFO  "-I- " DEVICE ": " __VA_ARGS__);  }
+#define WARNING(...) {  printk ( KERN_WARNING "-W- " DEVICE ": " __VA_ARGS__);  }
+#define ERROR(...) {  printk ( KERN_ERR "-E- " DEVICE ": " __VA_ARGS__);  }
+
 
 #include ".git.h"
-#include "kdbg.h"
 
 #include <linux/device.h>
 #include <linux/init.h>
@@ -21,13 +27,13 @@ $Id$
 
 static int __init_module(void)
 {
-  INFO("Init done (GIT Rev." VERSION ") [Build: " __TIME__ " " __DATE__ "]");
+  INFO("Init done (GIT Rev." VERSION ") [Build: " __TIME__ " " __DATE__ "]\n");
   return 0;
 }
 //-------------------------------------------------------------------------
 static void __exit_module(void)
 {
-  INFO("Unloaded (GIT Rev." VERSION ") [Build: " __TIME__ " " __DATE__ "]" );
+  INFO("Unloaded (GIT Rev." VERSION ") [Build: " __TIME__ " " __DATE__ "]\n" );
 }
 //-------------------------------------------------------------------------
 module_init(__init_module);

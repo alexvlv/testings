@@ -1,13 +1,15 @@
 
 #include "imx8mm-evk.dts"
 
-/*
+
 / {
-	node {
-		a-string-property = "A string";
+	test {
+		compatible = "alex,test";
+		reg = <0x4a064000 0x800>, <0x4a064800 0x200>, <0x4a064c00 0x200>;
+		reg-names = "config", "ohci", "ehci";		
 		foo = <3>;
 		label = "NODE";
 	};
 };
-*/
+
 
