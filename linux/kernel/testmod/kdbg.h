@@ -11,8 +11,8 @@ $Id$
 
 #define TRACE(fmt, args...) \
 	do { if(__dbglvl>1) printk ( \
-		KERN_DEBUG "-T- " DEVICE " %s:" xstr(__LINE__) " : " fmt "\n", \
-		kbasename(__FILE__),  ## args); } while (0)
+		KERN_DEBUG "-T- " DEVICE " %s:" xstr(__LINE__) ":(%s) " fmt "\n", \
+		kbasename(__FILE__),__PRETTY_FUNCTION__,  ## args); } while (0)
 #define DBG(fmt, args...) \
 	do { if(__dbglvl) printk ( \
 		KERN_DEBUG "-D- " DEVICE " " fmt "\n",  ## args); } while (0)
