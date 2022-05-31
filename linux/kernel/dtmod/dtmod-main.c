@@ -7,9 +7,9 @@ $Id$
 #include ".git.h"
 #include "kdbg.h"
 
-
 #include <linux/device.h>
 #include <linux/platform_device.h>
+#include <linux/of.h>
 #include <linux/init.h>
 #include <linux/ioctl.h>
 #include <linux/mm.h>
@@ -31,10 +31,43 @@ static const struct of_device_id __dt_ids[] = {
 MODULE_DEVICE_TABLE(of, __dt_ids);
 #endif
 //-------------------------------------------------------------------------
+static void get_named_resources(struct platform_device *pdev)
+{
+	int i;
+	static const char *names[] = {"ohci","config","ehci"};
+	struct resource *res[ARRAY_SIZE(names)];
+
+	TRACE("%lu %lu", ARRAY_SIZE(res),ARRAY_SIZE(names));
+
+	for(i=0;i<ARRAY_SIZE(res);i++) {
+		res[i] = platform_get_resource_byname(pdev, IORESOURCE_MEM, names[i]);
+		if(res[i]==NULL)
+			INFO("Resource %s start: %p", names[i],res[i]);
+		else 
+			INFO("Resource %s: start: %llX size: %llX", names[i], res[i]->start, resource_size(res[i]));
+	} 
+}
+//-------------------------------------------------------------------------
+static void get_strring(struct platform_device *pdev)
+{
+	const char *label = NULL;
+	of_property_read_string(pdev->dev.of_node, "label", &label);
+	INFO("String: %p [%s]", label,label);
+}
+//-------------------------------------------------------------------------
+static void get_uint(struct platform_device *pdev)
+{
+	u32 foo = ~0;
+	of_property_read_u32(pdev->dev.of_node, "foo", &foo);
+	INFO("Unsigned: %u", foo);
+}
+//-------------------------------------------------------------------------
 static int __probe(struct platform_device *pdev)  
 { 	
-	//TRACE("[%s]",__PRETTY_FUNCTION__ );
 	TRACE("" );
+	get_named_resources(pdev);
+	get_strring(pdev);
+	get_uint(pdev);
 	return 0; 
 } 
 //-------------------------------------------------------------------------
