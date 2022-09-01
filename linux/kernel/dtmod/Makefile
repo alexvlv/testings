@@ -15,8 +15,15 @@ export KDIR  = $(shell readlink -f $(KDIR_LNK) 2>/dev/null)
 
 # /lib/modules/$(KERNELRELEASE)/extra
 # /lib/modules/$(shell uname -r)/extra
+KERNELRELEASE_FILE = $(KDIR)/include/config/kernel.release
+ifeq ("$(wildcard $(KERNELRELEASE_FILE))","")
+$(warning File [$(KERNELRELEASE_FILE)] does not exists)
+endif
+KERNELRELEASE = $(shell cat $(KERNELRELEASE_FILE) 2>/dev/null)
+
 override INSTALL_LNK="$(MAKEFILE_DIR)/.install"
-INSTALL_DIR  = $(shell readlink -f $(INSTALL_LNK) 2>/dev/null)
+INSTALL_ROOT_DIR = $(shell readlink -f $(INSTALL_LNK) 2>/dev/null)
+INSTALL_DIR  = $(INSTALL_ROOT_DIR)/lib/modules/$(KERNELRELEASE)/extra/
 
 MAKEFLAGS += --no-print-directory
 # build quietly by default.  For a verbose build, run "make V=1"
