@@ -1,0 +1,62 @@
+# NOTE! Please use 'git ls-files -i --exclude-standard'
+# command after changing this file, to see if there are
+# any tracked files which get ignored after the change.
+
+# ignore compiled binaries w/o extension
+# Ignore all
+*
+# Unignore all with extensions
+!*.*
+# Unignore all dirs
+!*/
+### Above combination will ignore all files without extension ###
+
+#
+# Normal rules
+#
+.*
+*.o
+*.o.*
+*.a
+*.s
+*.so
+
+obj*/
+
+#
+# git files that we don't want to ignore even if they are dot-files
+#
+!.gitattributes
+!.gitignore
+!Makefile
+
+
+*.orig
+*~
+\#*#
+
+*.d
+
+#Linux kernel & modules 
+*.ko
+*.mod.c
+*.mod
+modules.order
+modules.builtin
+Module.symvers
+# Device tree blobs
+*.dtb
+
+
+# Kdevelop4
+#!.kdev4 
+*.kdev4
+*-unstripped
+*.autosave
+
+*-mips
+*-x86
+
+*.exe
+
+__pycache__
