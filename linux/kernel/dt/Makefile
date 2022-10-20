@@ -17,8 +17,9 @@ ifndef V
 	QUIET := @
 endif
 
-source_dirs := .
+source_dirs := $(MAKEFILE_DIR)
 
+include_dirs := $(MAKEFILE_DIR)/include
 include_dirs += $(KERNEL_SRC)/include
 include_dirs += $(KERNEL_SRC)/arch/arm64/boot/dts/freescale
 
@@ -53,8 +54,8 @@ $(obj_dir)/%.dts:%.dtb
 
 %.dtb:%.dts
 	@echo Compiling $@ from $< ...
-	$(QUIET) $(CPP) $(CPPLAGS) $(addprefix -I,$(include_dirs))  $< > $(obj_dir)/$*.pre
-	$(QUIET) $(DTC) -Idts -Odtb $(DTCLAGS) $(obj_dir)/$*.pre -o $@
+	$(QUIET) $(CPP) $(CPPLAGS) $(addprefix -I,$(include_dirs))  $< > $(obj_dir)/$(notdir $*).pre
+	$(QUIET) $(DTC) -Idts -Odtb $(DTCLAGS) $(obj_dir)/$(notdir $*).pre -o $@
 
 $(INSTALL_DIR):
 	$(QUIET) echo "Creating install directory: [$@]..."
