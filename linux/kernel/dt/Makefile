@@ -5,7 +5,7 @@ export MAKEFILE_DIR := $(realpath $(dir $(THIS_MAKEFILE)))
 
 TARGET := $(notdir $(patsubst %/,%,$(MAKEFILE_DIR)))
 
-KERNEL_LNK="$(MAKEFILE_DIR)/.kernel-src"
+KERNEL_LNK="$(MAKEFILE_DIR)/.kdir/source"
 KERNEL_SRC = $(shell readlink -f $(KERNEL_LNK) 2>/dev/null)
 
 INSTALL_LNK="$(MAKEFILE_DIR)/.install"
