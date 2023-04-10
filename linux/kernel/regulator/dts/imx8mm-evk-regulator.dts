@@ -1,0 +1,47 @@
+// $Id$
+
+#include "imx8mm-evk.dts"
+#include "imx8mm-evk-disabled.dts"
+
+/ {
+	dsi_iovcc: dsi-iovcc-regulator {
+		compatible = "regulator-fixed";
+		regulator-name = "REG-1v8";
+		regulator-min-microvolt = <1800000>;
+		regulator-max-microvolt = <1800000>;
+		enable-active-high;
+		gpio = <&gpio_i2c 0 GPIO_ACTIVE_HIGH>;
+	};
+
+	dsi_vddp: dsi-vddp-regulator {
+		compatible = "regulator-fixed";
+		regulator-name = "REG-3v3";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		regulator-always-on;
+	};
+
+	regulator: regulator-dev {
+		compatible = "alex,regulator";
+	};
+
+};
+
+&regulator {
+	pinctrl-0 = <&pinctrl_mipi_dsi_en>;
+	reset-gpios = <&gpio1 8 GPIO_ACTIVE_LOW>;
+	enable-gpios = <&gpio_i2c 4 GPIO_ACTIVE_HIGH>; // LED power
+	dcdc-en-gpios  = <&gpio_i2c 5 GPIO_ACTIVE_HIGH>; // EN_3V3
+	iovcc-supply = <&dsi_iovcc>;
+	vddp-supply = <&dsi_vddp>;
+	status = "okay";
+};
+
+&i2c2 {
+		gpio_i2c: gpio@20 {
+			compatible = "ti,tca6408";
+			reg = <0x20>;
+			gpio-controller;
+			#gpio-cells = <2>;
+		};
+};

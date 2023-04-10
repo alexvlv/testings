@@ -1,0 +1,7 @@
+# $Id $
+
+setenv fdtfile imx8mm-evk-regulator.dtb
+
+cat /sys/kernel/debug/regulator/regulator_summary
+
+https://wiki.st.com/stm32mpu/wiki/Regulator_overview
