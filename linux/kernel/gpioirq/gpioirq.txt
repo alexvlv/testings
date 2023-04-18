@@ -1,0 +1,3 @@
+
+setenv fdtfile imx8mm-evk-gpioirq.dtb
+modprobe -r gpioirq; modprobe gpioirq;

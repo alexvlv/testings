@@ -1,0 +1,36 @@
+// $Id$
+
+#include "imx8mm-evk.dts"
+#include "imx8mm-evk-disabled.dts"
+
+/ {
+	gpioirq: gpioirq-dev {
+		compatible = "alex,gpioirq";
+		interrupt-parent = <&gpio_i2c>;
+		interrupts = <2 IRQ_TYPE_EDGE_FALLING>;
+		irq-gpio = <&gpio_i2c 2 GPIO_ACTIVE_HIGH>;
+		enable-gpio = <&gpio_i2c 3 GPIO_ACTIVE_HIGH>;
+		//edge-failling-trigger;
+		status = "okay";
+	};
+};
+
+&i2c2 {
+	gpio_i2c: gpio@20 {
+		compatible = "ti,tca6408";
+		reg = <0x20>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		interrupt-controller;
+		#interrupt-cells = <2>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_mipi_dsi_en>;
+		interrupt-parent = <&gpio1>;
+		interrupts = <9 IRQ_TYPE_EDGE_FALLING>;
+		irq-gpios = <&gpio1 9 GPIO_ACTIVE_HIGH>;
+		reset-gpios = <&gpio1 1 GPIO_ACTIVE_LOW>;
+		gpio-line-names =
+			"en_1v8", "xs09", "xs10", "xs11", "en_avdd", "en_dcdc", "touch_rst", "touch_int";
+		status = "okay";
+	};
+};
