@@ -10,6 +10,8 @@ $Id$
 #include <linux/of.h>
 #include <linux/of_platform.h>
 #include <linux/gpio/consumer.h>
+#include <linux/irq.h>
+#include <linux/interrupt.h>
 #include <linux/init.h>
 #include <linux/ioctl.h>
 #include <linux/mm.h>
@@ -24,11 +26,41 @@ $Id$
 
 struct jdi_panel {
 	struct platform_device *pdev;
-
+	int irq;
 	struct gpio_desc *irq_gpio;
 	struct gpio_desc *enable_gpio;
 };
+//-------------------------------------------------------------------------
+static irqreturn_t irq_handler(int irq, void *dev_id)
+{
+	struct jdi_panel *jdi = dev_id;
+	struct platform_device *pdev = jdi->pdev;
+	struct device *dev = &pdev->dev;
 
+	dev_dbg(dev, "-=IRQ:%d =-\n",irq);
+	return IRQ_HANDLED;
+}
+//-------------------------------------------------------------------------
+static int setup_irq(struct jdi_panel *jdi)
+{
+	struct device *dev = &jdi->pdev->dev;
+	int irq;
+	int ret;
+
+	irq = gpiod_to_irq(jdi->irq_gpio);
+	dev_dbg(dev, "IRQ:%d GPIO:%d (%s@%s:%d)\n", irq, desc_to_gpio(jdi->irq_gpio),  __func__, kbasename(__FILE__), __LINE__);
+	irq = platform_get_irq(jdi->pdev, 0);
+	dev_dbg(dev, "IRQ:%d platform (%s@%s:%d)\n", irq,  __func__, kbasename(__FILE__), __LINE__);
+
+	ret = devm_request_threaded_irq(dev, irq,
+					NULL, irq_handler,
+					/*IRQ_TYPE_EDGE_BOTH |*/IRQF_ONESHOT | IRQF_SHARED,
+					dev_name(dev), jdi);
+	if (ret) {
+		dev_err(dev, "failed to request irq %d\n",irq);
+	}
+	return ret;
+}
 //-------------------------------------------------------------------------
 static int dev_gpio_acquire(struct device *dev, struct gpio_desc **pgp , const char *name, enum gpiod_flags flags)
 {
@@ -54,7 +86,6 @@ static int dev_gpio_acquire(struct device *dev, struct gpio_desc **pgp , const c
 	return ret;
 }
 //-------------------------------------------------------------------------
-
 #ifdef CONFIG_OF
 static const struct of_device_id __dt_ids[] = {
 	{ .compatible = "alex," DEVICE },
@@ -95,6 +126,10 @@ static int __probe(struct platform_device *pdev)
 	ret = dev_gpio_acquire(dev, &jdi->enable_gpio, "enable", GPIOD_OUT_HIGH);
 	if (ret)
 		return ret;
+	ret = setup_irq(jdi);
+	if (ret)
+		return ret;
+
 	dev_notice(dev, "Probe done (%s@%s:%d)\n",  __func__, kbasename(__FILE__), __LINE__);
 	return ret; 
 } 

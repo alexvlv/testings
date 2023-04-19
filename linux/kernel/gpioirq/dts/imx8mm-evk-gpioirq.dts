@@ -7,7 +7,7 @@
 	gpioirq: gpioirq-dev {
 		compatible = "alex,gpioirq";
 		interrupt-parent = <&gpio_i2c>;
-		interrupts = <2 IRQ_TYPE_EDGE_FALLING>;
+		interrupts = <2 IRQ_TYPE_EDGE_BOTH>;
 		irq-gpio = <&gpio_i2c 2 GPIO_ACTIVE_HIGH>;
 		enable-gpio = <&gpio_i2c 3 GPIO_ACTIVE_HIGH>;
 		//edge-failling-trigger;
