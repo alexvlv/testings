@@ -65,6 +65,8 @@ obj-m      += $(TARGET).o
 
 INCLUDES := $(wildcard   $(addsuffix /*.h, $(MAKEFILE_DIR)) )
 
+all: install dts
+
 install: $(TARGET).ko $(INSTALL_DIR)
 	$(QUIET) echo "Install $(TARGET).ko to [$(INSTALL_DIR)] ..." 
 	$(QUIET) cp -f $(TARGET).ko $(INSTALL_DIR)
@@ -89,3 +91,8 @@ $(INSTALL_DIR):
 clean:
 	$(QUIET) rm -f  $(TARGET).ko *.o .*.o.* .*.cmd *.mod.c *.mod *.*~ *.symvers modules.order; 
 	$(QUIET) rm -f -r .tmp_versions $(GITREVFILE)
+	$(QUIET) $(MAKE) -C $(MAKEFILE_DIR)/dts O=$(MAKEFILE_DIR)/dts clean
+
+.PHONY: dts
+dts:
+	$(QUIET) $(MAKE) -C $(MAKEFILE_DIR)/dts O=$(MAKEFILE_DIR)/dts
