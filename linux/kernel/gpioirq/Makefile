@@ -2,12 +2,15 @@
 
 THIS_MAKEFILE := $(lastword $(MAKEFILE_LIST))
 export MAKEFILE_DIR := $(realpath $(dir $(THIS_MAKEFILE)))
-TARGET := $(notdir $(patsubst %/,%,$(MAKEFILE_DIR)))
-DEVNAME := $(subst -,,$(TARGET))
 
 empty:=
 space:= $(empty) $(empty)
 $(if $(findstring $(space),$(MAKEFILE_DIR)),$(error ERROR: The path must not include any spaces))
+
+-include $(MAKEFILE_DIR)/rules.mk
+
+TARGET ?= $(notdir $(patsubst %/,%,$(MAKEFILE_DIR)))
+DEVNAME ?= $(subst -,,$(TARGET))
 
 override KDIR_LNK=$(MAKEFILE_DIR)/.kdir
 ifneq (,$(wildcard $(KDIR_LNK)))
@@ -24,7 +27,9 @@ KERNELRELEASE = $(shell cat $(KERNELRELEASE_FILE) 2>/dev/null)
 
 override INSTALL_LNK="$(MAKEFILE_DIR)/.install"
 INSTALL_ROOT_DIR = $(shell readlink -f $(INSTALL_LNK) 2>/dev/null)
-INSTALL_DIR  = $(INSTALL_ROOT_DIR)/lib/modules/$(KERNELRELEASE)/extra/
+
+KMOD_PATH ?= extra
+INSTALL_DIR  = $(INSTALL_ROOT_DIR)/lib/modules/$(KERNELRELEASE)/$(KMOD_PATH)/
 
 SDK_DIR = $(shell readlink -f $(MAKEFILE_DIR)/.sdk 2>/dev/null)
 SDK_ENV_FILE = $(SDK_DIR)/environment-setup-armv8a-poky-linux
@@ -43,7 +48,8 @@ ifndef V
 	QUIET := @
 endif
 
-SOURCES := $(notdir $(wildcard  $(addsuffix /$(TARGET)-*.c, $(MAKEFILE_DIR))))
+SOURCES := $(notdir $(wildcard  $(addsuffix /*.c, $(MAKEFILE_DIR))))
+SOURCES := $(filter-out *.mod.c, $(SOURCES))
 $(TARGET)-objs := $(SOURCES:.c=.o) 
 
 export GITREVFILE := $(PWD)/.git.h
