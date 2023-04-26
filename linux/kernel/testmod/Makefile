@@ -86,7 +86,9 @@ install: $(TARGET).ko $(INSTALL_DIR)
 $(TARGET).ko: $(GITREVFILE) $(THIS_MAKEFILE) $(SOURCES)  $(INCLUDES)
 	$(QUIET) $(SDK_PREFIX) \
        echo CROSS_COMPILE: $$CROSS_COMPILE ; \
-       $(MAKE) -j$(shell nproc) -C $(KDIR) M=$(PWD) $(TARGET).ko
+       $(MAKE) -j$(shell nproc) -C $(KDIR) M=$(PWD) $@
+	$(QUIET) mv $@ $(TARGET)-unstripped.ko
+	$(QUIET) $(SDK_PREFIX) $$STRIP $(TARGET)-unstripped.ko --strip-unneeded  -o $@ 
 
 .PHONY: git
 git:
@@ -101,7 +103,7 @@ $(INSTALL_DIR):
 	$(QUIET) mkdir -p $@
 
 clean:
-	$(QUIET) rm -f  $(TARGET).ko *.o .*.o.* .*.cmd *.mod.c *.mod *.*~ *.symvers modules.order; 
+	$(QUIET) rm -f  $(TARGET).ko $(TARGET)-unstripped.ko *.o .*.o.* .*.cmd *.mod.c *.mod *.*~ *.symvers modules.order; 
 	$(QUIET) rm -f -r .tmp_versions $(GITREVFILE)
 ifneq ($(wildcard $(MAKEFILE_DIR)/dts/.),)
 	$(QUIET) $(MAKE) -C $(MAKEFILE_DIR)/dts O=$(MAKEFILE_DIR)/dts clean
