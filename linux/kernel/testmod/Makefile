@@ -79,6 +79,11 @@ else
 all: install
 endif
 
+.PHONY: dis
+dis: $(TARGET).ko
+	@echo "Disassemble create..." # -DSx
+	$(QUIET) $(SDK_PREFIX) $$OBJDUMP  -Sx $(TARGET)-unstripped.ko  > .$(TARGET).dis
+
 install: $(TARGET).ko $(INSTALL_DIR)
 	$(QUIET) echo "Install $(TARGET).ko to [$(INSTALL_DIR)] ..." 
 	$(QUIET) cp -f $(TARGET).ko $(INSTALL_DIR)
