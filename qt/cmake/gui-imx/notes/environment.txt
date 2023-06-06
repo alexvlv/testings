@@ -1,0 +1,49 @@
+AR=aarch64-poky-linux-ar
+ARCH=arm64
+AS=aarch64-poky-linux-as 
+CC=aarch64-poky-linux-gcc  -march=armv8-a+crc+crypto -fstack-protector-strong  -O2 -D_FORTIFY_SOURCE=2 -Wformat -Wformat-security -Werror=format-security --sysroot=/tools/fsl-imx-xwayland/5.15.71-2.2.0-kirkstone/sysroots/armv8a-poky-linux
+CFLAGS= -O2 -pipe -g -feliminate-unused-debug-types 
+CONFIG_SITE=/tools/fsl-imx-xwayland/5.15.71-2.2.0-kirkstone/site-config-armv8a-poky-linux
+CONFIGURE_FLAGS=--target=aarch64-poky-linux --host=aarch64-poky-linux --build=x86_64-linux --with-libtool-sysroot=/tools/fsl-imx-xwayland/5.15.71-2.2.0-kirkstone/sysroots/armv8a-poky-linux
+CPP=aarch64-poky-linux-gcc -E  -march=armv8-a+crc+crypto -fstack-protector-strong  -O2 -D_FORTIFY_SOURCE=2 -Wformat -Wformat-security -Werror=format-security --sysroot=/tools/fsl-imx-xwayland/5.15.71-2.2.0-kirkstone/sysroots/armv8a-poky-linux
+CPPFLAGS=
+CROSS_COMPILE=aarch64-poky-linux-
+CXX=aarch64-poky-linux-g++  -march=armv8-a+crc+crypto -fstack-protector-strong  -O2 -D_FORTIFY_SOURCE=2 -Wformat -Wformat-security -Werror=format-security --sysroot=/tools/fsl-imx-xwayland/5.15.71-2.2.0-kirkstone/sysroots/armv8a-poky-linux
+CXXFLAGS= -O2 -pipe -g -feliminate-unused-debug-types 
+GDB=aarch64-poky-linux-gdb
+KCFLAGS=--sysroot=/tools/fsl-imx-xwayland/5.15.71-2.2.0-kirkstone/sysroots/armv8a-poky-linux
+LD=aarch64-poky-linux-ld  --sysroot=/tools/fsl-imx-xwayland/5.15.71-2.2.0-kirkstone/sysroots/armv8a-poky-linux
+LDFLAGS=-Wl,-O1 -Wl,--hash-style=gnu -Wl,--as-needed  -Wl,-z,relro,-z,now
+NM=aarch64-poky-linux-nm
+OBJCOPY=aarch64-poky-linux-objcopy
+OBJDUMP=aarch64-poky-linux-objdump
+OE_CMAKE_FIND_LIBRARY_CUSTOM_LIB_SUFFIX=
+OE_CMAKE_TOOLCHAIN_FILE=/tools/fsl-imx-xwayland/5.15.71-2.2.0-kirkstone/sysroots/x86_64-pokysdk-linux/usr/share/cmake/OEToolchainConfig.cmake
+OECORE_ACLOCAL_OPTS=-I /tools/fsl-imx-xwayland/5.15.71-2.2.0-kirkstone/sysroots/x86_64-pokysdk-linux/usr/share/aclocal
+OECORE_BASELIB=lib
+OECORE_DISTRO_VERSION=5.15-kirkstone
+OECORE_NATIVE_SYSROOT=/tools/fsl-imx-xwayland/5.15.71-2.2.0-kirkstone/sysroots/x86_64-pokysdk-linux
+OECORE_SDK_VERSION=5.15-kirkstone
+OECORE_TARGET_ARCH=aarch64
+OECORE_TARGET_OS=linux
+OECORE_TARGET_SYSROOT=/tools/fsl-imx-xwayland/5.15.71-2.2.0-kirkstone/sysroots/armv8a-poky-linux
+OECORE_TUNE_CCARGS= -march=armv8-a+crc+crypto
+OE_QMAKE_AR=aarch64-poky-linux-ar
+OE_QMAKE_AR_LTCG=aarch64-poky-linux-gcc-ar
+OE_QMAKE_CC=aarch64-poky-linux-gcc  -march=armv8-a+crc+crypto -fstack-protector-strong  -O2 -D_FORTIFY_SOURCE=2 -Wformat -Wformat-security -Werror=format-security --sysroot=/tools/fsl-imx-xwayland/5.15.71-2.2.0-kirkstone/sysroots/armv8a-poky-linux
+OE_QMAKE_CFLAGS= -O2 -pipe -g -feliminate-unused-debug-types 
+OE_QMAKE_CXX=aarch64-poky-linux-g++  -march=armv8-a+crc+crypto -fstack-protector-strong  -O2 -D_FORTIFY_SOURCE=2 -Wformat -Wformat-security -Werror=format-security --sysroot=/tools/fsl-imx-xwayland/5.15.71-2.2.0-kirkstone/sysroots/armv8a-poky-linux
+OE_QMAKE_CXXFLAGS= -O2 -pipe -g -feliminate-unused-debug-types 
+OE_QMAKE_LDFLAGS=-Wl,-O1 -Wl,--hash-style=gnu -Wl,--as-needed  -Wl,-z,relro,-z,now
+OE_QMAKE_LINK=aarch64-poky-linux-g++  -march=armv8-a+crc+crypto -fstack-protector-strong  -O2 -D_FORTIFY_SOURCE=2 -Wformat -Wformat-security -Werror=format-security --sysroot=/tools/fsl-imx-xwayland/5.15.71-2.2.0-kirkstone/sysroots/armv8a-poky-linux
+OE_QMAKE_OBJCOPY=aarch64-poky-linux-objcopy
+OE_QMAKE_STRIP=aarch64-poky-linux-strip
+OPENSSL_CONF=/tools/fsl-imx-xwayland/5.15.71-2.2.0-kirkstone/sysroots/x86_64-pokysdk-linux/usr/lib/ssl-3/openssl.cnf
+PATH=/tools/fsl-imx-xwayland/5.15.71-2.2.0-kirkstone/sysroots/x86_64-pokysdk-linux/usr/bin:/tools/fsl-imx-xwayland/5.15.71-2.2.0-kirkstone/sysroots/x86_64-pokysdk-linux/usr/sbin:/tools/fsl-imx-xwayland/5.15.71-2.2.0-kirkstone/sysroots/x86_64-pokysdk-linux/bin:/tools/fsl-imx-xwayland/5.15.71-2.2.0-kirkstone/sysroots/x86_64-pokysdk-linux/sbin:/tools/fsl-imx-xwayland/5.15.71-2.2.0-kirkstone/sysroots/x86_64-pokysdk-linux/usr/bin/../x86_64-pokysdk-linux/bin:/tools/fsl-imx-xwayland/5.15.71-2.2.0-kirkstone/sysroots/x86_64-pokysdk-linux/usr/bin/aarch64-poky-linux:/tools/fsl-imx-xwayland/5.15.71-2.2.0-kirkstone/sysroots/x86_64-pokysdk-linux/usr/bin/aarch64-poky-linux-musl:/home/alex/.local/bin:/home/alex/bin:/tools/sbin:/tools/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+PKG_CONFIG_PATH=/tools/fsl-imx-xwayland/5.15.71-2.2.0-kirkstone/sysroots/armv8a-poky-linux/usr/lib/pkgconfig:/tools/fsl-imx-xwayland/5.15.71-2.2.0-kirkstone/sysroots/armv8a-poky-linux/usr/share/pkgconfig
+PKG_CONFIG_SYSROOT_DIR=/tools/fsl-imx-xwayland/5.15.71-2.2.0-kirkstone/sysroots/armv8a-poky-linux
+RANLIB=aarch64-poky-linux-ranlib
+READELF=aarch64-poky-linux-readelf
+SDKTARGETSYSROOT=/tools/fsl-imx-xwayland/5.15.71-2.2.0-kirkstone/sysroots/armv8a-poky-linux
+STRIP=aarch64-poky-linux-strip
+TARGET_PREFIX=aarch64-poky-linux-
