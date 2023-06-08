@@ -1,0 +1,77 @@
+# $Id$
+
+cmake_minimum_required(VERSION 3.20)
+
+if(NOT CMAKE_BUILD_TYPE)
+	set(CMAKE_BUILD_TYPE Release)
+endif()
+
+execute_process(
+	COMMAND basename ${CMAKE_CURRENT_SOURCE_DIR}
+	ERROR_QUIET
+	OUTPUT_VARIABLE PROJECT_NAME
+	OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+#if (NOT CMAKE_BUILD_TYPE STREQUAL Release)
+#	SET(PROJECT_NAME ${PROJECT_NAME}-${CMAKE_BUILD_TYPE})
+#endif()
+
+message("Configure project:[${PROJECT_NAME}]")
+add_compile_definitions(APPNAME="${PROJECT_NAME}")
+
+project(${PROJECT_NAME} LANGUAGES CXX C)
+set(PROJECT_UNSTRIPPED ${PROJECT_NAME}-unstripped)
+
+find_package(QT NAMES Qt6)
+set(QT_VERSION_MAJOR 6)
+set(QT_VERSION ${Qt6_VERSION})
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets Core Network REQUIRED)
+
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+file(GLOB SOURCES *.cpp )
+file(GLOB HEADERS *.h )
+
+set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+
+#set CMAKE_BUILD_WITH_INSTALL_RPATH and CMAKE_INSTALL_RPATH before add_executable
+set(CMAKE_SKIP_BUILD_RPATH TRUE)
+
+add_executable(${PROJECT_UNSTRIPPED} #EXCLUDE_FROM_ALL
+  ${SOURCES}
+  ${HEADERS}
+)
+
+target_link_libraries(${PROJECT_UNSTRIPPED}
+	Qt${QT_VERSION_MAJOR}::Core
+	Qt${QT_VERSION_MAJOR}::Widgets
+	Qt${QT_VERSION_MAJOR}::Network
+)
+
+add_custom_command(
+    TARGET ${PROJECT_UNSTRIPPED} POST_BUILD
+	COMMAND +${CMAKE_BUILD_TOOL} ${PROJECT_NAME}
+)
+
+add_custom_target(strip
+    DEPENDS ${PROJECT_NAME}
+)
+
+add_custom_target(${PROJECT_NAME}
+    DEPENDS ${PROJECT_UNSTRIPPED}
+    COMMAND ${CMAKE_STRIP} ${PROJECT_UNSTRIPPED} -o ${PROJECT_NAME}
+    COMMENT "Strip ${PROJECT_NAME}"
+)
+
+include(${CMAKE_SOURCE_DIR}/cmake/qwt.cmake)
+include(${CMAKE_SOURCE_DIR}/cmake/install.cmake)
+include(${CMAKE_SOURCE_DIR}/cmake/gitversion.cmake)
+include(${CMAKE_SOURCE_DIR}/cmake/clean.cmake)
