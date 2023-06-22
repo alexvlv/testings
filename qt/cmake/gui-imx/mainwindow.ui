@@ -31,7 +31,7 @@
     <property name="geometry">
      <rect>
       <x>120</x>
-      <y>230</y>
+      <y>310</y>
       <width>401</width>
       <height>25</height>
      </rect>
@@ -40,8 +40,8 @@
    <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
-      <x>80</x>
-      <y>40</y>
+      <x>10</x>
+      <y>0</y>
       <width>421</width>
       <height>31</height>
      </rect>
@@ -53,6 +53,60 @@
     </property>
     <property name="text">
      <string>HELLO, WORLD!</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_2">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>30</y>
+      <width>421</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>18</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Привет Мир! Русский язык!</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="labelWin">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>130</y>
+      <width>611</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>14</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Russian text will be here</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="labelWinOrig">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>170</y>
+      <width>611</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>14</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Russian text will be here</string>
     </property>
    </widget>
   </widget>
