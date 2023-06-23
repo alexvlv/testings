@@ -1,6 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include "WinString.h"
+
 #include <QTextCodec>
 #include <QByteArray>
 #include <QFile>
@@ -45,6 +47,7 @@ MainWindow::MainWindow(QWidget *parent)
         ui->labelWin->setText(txt);
         QString txtOrig = QString::fromLocal8Bit(wintext);
         ui->labelWinOrig->setText(txtOrig);
+        ui->labelWinString->setText(WinString::fromLocal8Bit(wintext));
     }
 }
 
