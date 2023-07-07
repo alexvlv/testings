@@ -1,6 +1,6 @@
 # $Id$
 
-if(EXISTS ${CMAKE_SOURCE_DIR}/.install )
+if(EXISTS ${CMAKE_SOURCE_DIR}/.install AND CMAKE_CROSSCOMPILING)
 	execute_process(
 		COMMAND readlink "${CMAKE_SOURCE_DIR}/.install"
 		OUTPUT_VARIABLE CMAKE_INSTALL_PREFIX

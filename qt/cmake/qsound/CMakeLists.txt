@@ -20,17 +20,11 @@ execute_process(
 	OUTPUT_VARIABLE PROJECT_NAME
 	OUTPUT_STRIP_TRAILING_WHITESPACE
 )
-message("Configure project:[${PROJECT_NAME}]")
+message("-- Configure project:[${PROJECT_NAME}]")
 add_compile_definitions(APPNAME="${PROJECT_NAME}")
 
 project(${PROJECT_NAME} LANGUAGES CXX C)
 set(PROJECT_UNSTRIPPED ${PROJECT_NAME}-unstripped)
-
-if (CMAKE_CROSSCOMPILING)
-	message("Cross compiling: [${CMAKE_SYSTEM_PROCESSOR}]!")
-else()
-	message("Native compiling: [${CMAKE_SYSTEM_PROCESSOR}]!")
-endif()
 
 find_package(QT NAMES Qt6 Qt5)
 #set(QT_VERSION_MAJOR 6)
@@ -107,4 +101,5 @@ add_custom_target(${PROJECT_NAME}
 include(${CMAKE_SOURCE_DIR}/cmake/install.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/gitversion.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/clean.cmake)
+include(${CMAKE_SOURCE_DIR}/cmake/suffix.cmake)
 
