@@ -52,7 +52,7 @@ $(obj_dir)/%.dts:%.dtb
 	@echo Decompiling $@ from $< ...
 	$(QUIET) $(DTC) -Idtb -Odts $(DTCLAGS) $< -o $@
 
-%.dtb:%.dts
+%.dtb:%.dts $(obj_dir) $(shell find $(include_dirs) -type f)
 	@echo Compiling $@ from $< ...
 	$(QUIET) $(CPP) $(CPPLAGS) $(addprefix -I,$(include_dirs))  $< > $(obj_dir)/$(notdir $*).pre
 	$(QUIET) $(DTC) -Idts -Odtb $(DTCLAGS) $(obj_dir)/$(notdir $*).pre -o $@
@@ -67,4 +67,3 @@ $(obj_dir):
 clean:
 	$(QUIET) rm -f  $(TARGETS)
 	$(QUIET) rm -f -r $(obj_dir)
-  
