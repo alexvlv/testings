@@ -1,11 +1,14 @@
 #include "AudioCapture.h"
 
+#include <QDebug>
 #include <QMediaCaptureSession>
 #include <QAudioOutput>
 #include <QAudioInput>
 #include <QAudioDevice>
 #include <QMediaDevices>
+#include <QMediaFormat>
 #include <QMediaRecorder>
+#include <QUrl>
 
 //-------------------------------------------------------------------------
 AudioCapture::AudioCapture(QObject *parent)
@@ -15,8 +18,17 @@ AudioCapture::AudioCapture(QObject *parent)
 	m_MediaCap->setAudioOutput(audioOutput);
 	QAudioInput *audioInput = new QAudioInput(QMediaDevices::defaultAudioInput());
 	m_MediaCap->setAudioInput(audioInput);
-	//QMediaRecorder *recorder = new QMediaRecorder;
-	//m_MediaCap->setRecorder(recorder);
+	QMediaRecorder *recorder = new QMediaRecorder;
+	qDebug() << recorder->mediaFormat().supportedAudioCodecs(QMediaFormat::Encode);
+	qDebug() << recorder->mediaFormat().supportedFileFormats(QMediaFormat::Encode);
+	QMediaFormat fmt(QMediaFormat::Wave);
+	recorder->setMediaFormat(fmt);
+	recorder->setOutputLocation(QUrl::fromLocalFile("/mnt/nfs/input"));
+	qDebug() << recorder->recorderState() << recorder->actualLocation();
+	m_MediaCap->setRecorder(recorder);
+	recorder->record();
+	qDebug() << recorder->recorderState() << recorder->actualLocation();
+	qDebug() << recorder->mediaFormat().audioCodec() << recorder->mediaFormat().fileFormat()  ;
 
 }
 //-------------------------------------------------------------------------
