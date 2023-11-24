@@ -11,13 +11,19 @@ MainWindow::MainWindow(QWidget *parent)
 	ui->setupUi(this);
 	ui->labelVersion->setText(APPNAME " GIT rev.: " GIT_REV " at " GIT_DATE " on " GIT_BRANCH " [Build: " BUILD_TIMESTAMP " UTC]");
 	QObject *ev= new EventLogger(this);
-	ui->lineEdit->installEventFilter(ev);
-	ui->lineEdit_2->installEventFilter(ev);
-	ui->textEdit->installEventFilter(ev);
+	this->installEventFilter(ev);
+	//ui->lineEdit->installEventFilter(ev);
+	//ui->lineEdit_2->installEventFilter(ev);
+	//ui->textEdit->installEventFilter(ev);
 }
 //-------------------------------------------------------------------------
 MainWindow::~MainWindow()
 {
 	delete ui;
+}
+//-------------------------------------------------------------------------
+void MainWindow::on_pushButtonFocus_clicked()
+{
+	ui->textEdit->setFocus(Qt::ActiveWindowFocusReason);
 }
 //-------------------------------------------------------------------------

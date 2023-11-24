@@ -14,9 +14,11 @@ bool EventLogger::eventFilter(QObject *obj, QEvent *event)
 	switch (event->type()) {
 	case QEvent::MouseMove:
 	case QEvent::Paint:
+	case QEvent::HoverMove:
+	case QEvent::UpdateRequest:
 		break;
 	default:
-		qDebug()<< "Event on" << obj->objectName() << ":" << event->type();
+		qDebug() << "Event on" << obj->objectName() << ":" << event->type();
 		break;
 	}
 	return QObject::eventFilter(obj, event);
