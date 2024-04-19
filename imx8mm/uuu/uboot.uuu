@@ -1,0 +1,15 @@
+uuu_version 0.64.193
+
+SDP: boot -f flash.bin
+SDPV: delay 1000
+SDPV: write -f flash.bin -skipspl 
+SDPV: jump
+
+FB: continue
+FB: Done
+
+#FB: delay 300
+#FB: ucmd printenv
+#FB: delay 3000
+#FB: acmd reset
+

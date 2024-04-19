@@ -1,0 +1,5 @@
+
+SDPS: boot -f flash.bin
+SDPV: delay 1000
+SDPV: write -f flash.bin -skipspl
+FB: ucmd printenv
