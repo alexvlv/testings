@@ -5,6 +5,10 @@ SDPV: delay 1000
 SDPV: write -f flash.bin -skipspl 
 SDPV: jump
 
+FB: ucmd setenv serverip 192.168.99.1
+FB: ucmd setenv ipaddr 192.168.99.8
+FB: ucmd ping ${serverip}
+
 FB: continue
 FB: Done
 
