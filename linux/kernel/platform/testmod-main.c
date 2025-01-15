@@ -89,3 +89,7 @@ MODULE_LICENSE("GPL");
 // to suppress "loading out-of-tree module taints kernel." warning
 MODULE_INFO(intree,"Y");
 //-------------------------------------------------------------------------
+/*
+echo 'file testmod-main.c +p'>/sys/kernel/debug/dynamic_debug/control
+
+*/

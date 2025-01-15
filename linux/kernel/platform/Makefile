@@ -43,7 +43,7 @@ echo "#ifndef GIT_REVISION \n#define GIT_REVISION \"$REV\" \n#endif" > $GITREVFI
 endef
 
 ccflags-y += -DDEVNAME=$(DEVNAME) -Wno-date-time
-ccflags-y += -DDEBUG
+#ccflags-y += -DDEBUG
 obj-m     += $(TARGET).o
 
 override INSTALL_LNK=$(MAKEFILE_DIR)/.install
