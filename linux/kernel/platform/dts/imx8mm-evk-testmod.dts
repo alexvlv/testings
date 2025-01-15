@@ -1,0 +1,14 @@
+// $Id$
+
+#include "imx8mm-evk.dts"
+#include "imx8mm-evk-disabled.dts"
+
+/ {
+	test {
+		compatible = "testmod,testmod";
+		reg = <0x4a064000 0x800>, <0x4a064800 0x200>, <0x4a064c00 0x200>;
+		reg-names = "config", "ohci", "ehci";		
+		foo = <3>;
+		label = "NODE";
+	};
+};

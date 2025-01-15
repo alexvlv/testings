@@ -1,0 +1,49 @@
+// $Id: 7172d0ce198291ccaf9b2d691c3d429db2078e5e $
+
+// #include "imx8mm-evk.dts" // must be included before
+
+// Not currently in use
+//&bt_sco_codec  {
+//	status = "disabled";
+//};
+
+&sai2 {
+	status = "disabled";
+};
+
+// Not installed
+&pmic_nxp {
+	status = "disabled";
+};
+
+/* MIPI-CSI camera not present currently */
+&mipi_csi_1 {
+	status = "disabled";
+};
+
+&ov5640_mipi {
+	status = "disabled";
+};
+
+/* I2C Sound DAC  */
+&ak4458_1 {
+	status = "disabled";
+};
+
+&ak4458_2 {
+	status = "disabled";
+};
+
+&ak5558 {
+	status = "disabled";
+};
+
+&ak4497 {
+	status = "disabled";
+};
+
+/ {
+	ir-receiver {
+		status = "disabled";
+	};
+};
