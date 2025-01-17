@@ -3,9 +3,9 @@
 // #include "imx8mm-evk.dts" // must be included before
 
 // Not currently in use
-&bt_sco_codec  {
-	status = "disabled";
-};
+//&bt_sco_codec  {
+//	status = "disabled";
+//};
 &sai2 {
 	status = "disabled";
 };

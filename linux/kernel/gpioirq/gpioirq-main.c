@@ -123,9 +123,9 @@ static int __probe(struct platform_device *pdev)
 	ret = dev_gpio_acquire(dev, &jdi->irq_gpio, "irq", GPIOD_IN);
 	if (ret)
 		return ret;
-	ret = dev_gpio_acquire(dev, &jdi->enable_gpio, "enable", GPIOD_OUT_HIGH);
-	if (ret)
-		return ret;
+	//ret = dev_gpio_acquire(dev, &jdi->enable_gpio, "enable", GPIOD_OUT_HIGH);
+	//if (ret)
+	//	return ret;
 	ret = setup_irq(jdi);
 	if (ret)
 		return ret;
