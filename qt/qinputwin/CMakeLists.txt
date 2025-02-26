@@ -14,6 +14,18 @@ execute_process(
 message("-- Configure project:[${PROJECT_NAME}]")
 add_compile_definitions(APPNAME="${PROJECT_NAME}")
 
+#set(ENV{PATH} "/tools/fsl-imx-xwayland/5.15.71-2.2.0-kirkstone/sysroots/x86_64-pokysdk-linux/usr/bin:/tools/fsl-imx-xwayland/5.15.71-2.2.0-kirkstone/sysroots/x86_64-pokysdk-linux/usr/sbin:/tools/fsl-imx-xwayland/5.15.71-2.2.0-kirkstone/sysroots/x86_64-pokysdk-linux/bin:/tools/fsl-imx-xwayland/5.15.71-2.2.0-kirkstone/sysroots/x86_64-pokysdk-linux/sbin:/tools/fsl-imx-xwayland/5.15.71-2.2.0-kirkstone/sysroots/x86_64-pokysdk-linux/usr/bin/../x86_64-pokysdk-linux/bin:/tools/fsl-imx-xwayland/5.15.71-2.2.0-kirkstone/sysroots/x86_64-pokysdk-linux/usr/bin/aarch64-poky-linux:/tools/fsl-imx-xwayland/5.15.71-2.2.0-kirkstone/sysroots/x86_64-pokysdk-linux/usr/bin/aarch64-poky-linux-musl:$ENV{PATH}") 
+#set(ENV{OECORE_TARGET_SYSROOT} /tools/fsl-imx-xwayland/5.15.71-2.2.0-kirkstone/sysroots/armv8a-poky-linux)
+#set(ENV{PKG_CONFIG_SYSROOT_DIR} $ENV{OECORE_TARGET_SYSROOT})
+#set(ENV{PKG_CONFIG_PATH} $ENV{OECORE_TARGET_SYSROOT}/usr/lib/pkgconfig:$ENV{OECORE_TARGET_SYSROOT}/usr/share/pkgconfig)
+
+#include(/tools/fsl-imx-xwayland/5.15.71-2.2.0-kirkstone/sysroots/x86_64-pokysdk-linux/usr/share/cmake/OEToolchainConfig.cmake)
+#set(CMAKE_TOOLCHAIN_FILE /work/tools/fsl-imx-xwayland/5.15.71-2.2.0-kirkstone/sysroots/x86_64-pokysdk-linux/usr/share/cmake/armv8a-poky-linux-toolchain.cmake)
+#set(CMAKE_TOOLCHAIN_FILE /tools/fsl-imx-xwayland/5.15.71-2.2.0-kirkstone/sysroots/x86_64-pokysdk-linux/usr/share/cmake/OEToolchainConfig.cmake)
+
+#set(Qt6_DIR ${SYSROOT_DIR}/usr/lib/cmake/Qt6)
+#set(QT_DIR  ${Qt6_DIR})
+
 project(${PROJECT_NAME} VERSION 0.1 LANGUAGES CXX)
 set(PROJECT_UNSTRIPPED ${PROJECT_NAME}-unstripped)
 set(PROJECT_NAME_BIN ${PROJECT_NAME})
