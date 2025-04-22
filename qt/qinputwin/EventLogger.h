@@ -13,6 +13,9 @@ signals:
 
 protected:
 	bool eventFilter(QObject *obj, QEvent *event) override;
+private:
+	void processKeyEvent(QObject *obj, QEvent *event);
+
 };
 
 #endif // EVENTLOGGER_H
