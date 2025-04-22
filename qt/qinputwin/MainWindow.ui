@@ -24,14 +24,17 @@
    <widget class="QPushButton" name="pushButtonQuit">
     <property name="geometry">
      <rect>
-      <x>720</x>
-      <y>420</y>
+      <x>1180</x>
+      <y>430</y>
       <width>491</width>
       <height>221</height>
      </rect>
     </property>
     <property name="text">
      <string>Quit</string>
+    </property>
+    <property name="shortcut">
+     <string>F4</string>
     </property>
    </widget>
    <widget class="QLineEdit" name="lineEdit">
@@ -115,6 +118,9 @@
     <property name="text">
      <string>Focus</string>
     </property>
+    <property name="shortcut">
+     <string>F2</string>
+    </property>
    </widget>
    <widget class="QPushButton" name="pushButtonNone">
     <property name="geometry">
@@ -127,6 +133,25 @@
     </property>
     <property name="text">
      <string>None</string>
+    </property>
+    <property name="shortcut">
+     <string>F1</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButtonFunc">
+    <property name="geometry">
+     <rect>
+      <x>680</x>
+      <y>430</y>
+      <width>491</width>
+      <height>221</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Function</string>
+    </property>
+    <property name="shortcut">
+     <string>F3</string>
     </property>
    </widget>
   </widget>

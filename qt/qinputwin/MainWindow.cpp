@@ -27,3 +27,8 @@ void MainWindow::on_pushButtonFocus_clicked()
 	ui->textEdit->setFocus(Qt::ActiveWindowFocusReason);
 }
 //-------------------------------------------------------------------------
+void MainWindow::on_pushButtonFunc_clicked()
+{
+	qDebug() << __PRETTY_FUNCTION__ ;
+}
+//-------------------------------------------------------------------------
