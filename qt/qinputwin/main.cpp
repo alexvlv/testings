@@ -11,6 +11,8 @@ int main(int argc, char *argv[])
 	QApplication a(argc, argv);
 	MainWindow w;
 	QApplication::setFont(w.font());
+	//w.setWindowState(Qt::WindowMaximized);
+	w.setWindowState(Qt::WindowFullScreen);
 	w.show();
 	//w.move(0,0);
 	//w.windowHandle()->setPosition(0,0);
