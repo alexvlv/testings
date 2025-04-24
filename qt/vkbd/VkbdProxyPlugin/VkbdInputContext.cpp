@@ -1,4 +1,5 @@
 #include "VkbdInputContext.h"
+#include "WidgetKey.h"
 
 #include <QDebug>
 #include <QGuiApplication>
@@ -7,7 +8,7 @@
 
 //-------------------------------------------------------------------------
 VkbdInputContext::VkbdInputContext()
-	: QPlatformInputContext()
+	: QPlatformInputContext(),view{nullptr}
 {
 
 }
@@ -25,15 +26,18 @@ QRectF VkbdInputContext::keyboardRect() const
 //-------------------------------------------------------------------------
 void VkbdInputContext::showInputPanel()
 {
-	//qDebug()<< __PRETTY_FUNCTION__ << m_focusItem;
-	//if(view != nullptr) view->show();
+	qDebug()<< __PRETTY_FUNCTION__ << m_focusItem;
+	if(view != nullptr) {
+	}
+	view->setFocusItem(m_focusItem);
+	view->show();
 	QPlatformInputContext::showInputPanel();
 	emitInputPanelVisibleChanged();
 }
 //-------------------------------------------------------------------------
 void VkbdInputContext::hideInputPanel()
 {
-	//qDebug()<< __PRETTY_FUNCTION__ << view;
+	qDebug()<< __PRETTY_FUNCTION__ << view;
 	//if(view != nullptr) view->hide();
 	QPlatformInputContext::hideInputPanel();
 	emitInputPanelVisibleChanged();
@@ -41,8 +45,7 @@ void VkbdInputContext::hideInputPanel()
 //-------------------------------------------------------------------------
 bool VkbdInputContext::isInputPanelVisible() const
 {
-	//bool fl = (view)?view->isVisible():false;
-	bool fl =false;
+	bool fl = (view)?view->isVisible():false;
 	qDebug()<< __PRETTY_FUNCTION__ << fl;
 	return fl;
 }
@@ -52,6 +55,9 @@ void VkbdInputContext::setFocusObject(QObject *object)
 	if(!object) return;
 	QWidget *widget = qobject_cast<QWidget *>(object);
 	if(!widget) return;
+	if(view == nullptr) {
+		view = new WidgetKey();
+	}
 	QWidget *window = widget->window();
 	qDebug()<< __PRETTY_FUNCTION__ << widget << window;
 	m_focusItem = object;

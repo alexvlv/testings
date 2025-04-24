@@ -6,6 +6,7 @@
 
 QT_BEGIN_NAMESPACE
 
+class WidgetKey;
 
 //-------------------------------------------------------------------------
 class VkbdInputContext : public QPlatformInputContext
@@ -25,6 +26,7 @@ public:
 	bool isInputPanelVisible() const override;
 
 private:
+	WidgetKey *view;
 	QObject * m_focusItem = nullptr;
 
 };

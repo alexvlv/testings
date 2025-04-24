@@ -50,15 +50,15 @@ void MainWindow::on_pushButtonFunc_clicked()
 {
 	//QMessageBox::StandardButton rc = QMessageBox::question(this, tr("QMessageBox::information()"),"Achtung!");
 	//qDebug() << __PRETTY_FUNCTION__ << rc;
-
 	qDebug() << __PRETTY_FUNCTION__;
-	if(!dialog) dialog = new Dialog(this);
-	dialog->show();
+	//if(!dialog) dialog = new Dialog(this);
+	//dialog->show();
 	//dialog->move(0,0);
-	QTimer::singleShot(3000,dialog,&Dialog::on_SingleShot);
+	//QTimer::singleShot(3000,dialog,&Dialog::on_SingleShot);
 
 	//move(0,0);
 	//windowHandle()->setPosition(0,0);
+	ui->pushButtonFunc->setFocus(Qt::ActiveWindowFocusReason);
 }
 //-------------------------------------------------------------------------
 void MainWindow::on_SingleShot()

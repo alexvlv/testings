@@ -20,6 +20,7 @@ MainWindow::MainWindow(QWidget *parent)
     //QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
 
     ui->setupUi(this);
+    setWindowState(Qt::WindowFullScreen);
     setWindowFlags(Qt::FramelessWindowHint);
     setAttribute(Qt::WA_NoSystemBackground);
     setAttribute(Qt::WA_TranslucentBackground);
