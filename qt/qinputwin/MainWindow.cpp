@@ -2,10 +2,13 @@
 #include "MainWindow.h"
 #include "./ui_MainWindow.h"
 #include "EventLogger.h"
+#include "Dialog.h"
 
 #include <QWindow>
 #include <QTimer>
 #include <QMessageBox>
+#include <QtGui/qscreen.h>
+
 
 //-------------------------------------------------------------------------
 MainWindow::MainWindow(QWidget *parent)
@@ -23,12 +26,18 @@ MainWindow::MainWindow(QWidget *parent)
 	//ui->lineEdit_2->installEventFilter(ev);
 	//ui->textEdit->installEventFilter(ev);
 	//QTimer::singleShot(100,this,SLOT(on_SingleShot()));
+	QScreen *screen = QWidget::screen();
+	if (screen) {
+		qDebug()<< "SCREEN:" << screen->availableGeometry();
+	}
+
 	QTimer::singleShot(100,this,&MainWindow::on_SingleShot);
 }
 //-------------------------------------------------------------------------
 MainWindow::~MainWindow()
 {
 	delete ui;
+	delete dialog;
 }
 //-------------------------------------------------------------------------
 void MainWindow::on_pushButtonFocus_clicked()
@@ -39,8 +48,15 @@ void MainWindow::on_pushButtonFocus_clicked()
 //-------------------------------------------------------------------------
 void MainWindow::on_pushButtonFunc_clicked()
 {
-	QMessageBox::StandardButton rc = QMessageBox::question(this, tr("QMessageBox::information()"),"Achtung!");
-	qDebug() << __PRETTY_FUNCTION__ << rc;
+	//QMessageBox::StandardButton rc = QMessageBox::question(this, tr("QMessageBox::information()"),"Achtung!");
+	//qDebug() << __PRETTY_FUNCTION__ << rc;
+
+	qDebug() << __PRETTY_FUNCTION__;
+	if(!dialog) dialog = new Dialog(this);
+	dialog->show();
+	//dialog->move(0,0);
+	QTimer::singleShot(3000,dialog,&Dialog::on_SingleShot);
+
 	//move(0,0);
 	//windowHandle()->setPosition(0,0);
 }
@@ -51,6 +67,10 @@ void MainWindow::on_SingleShot()
 	qDebug()<< __PRETTY_FUNCTION__ << pos() << windowHandle()->position() << windowHandle()->parent();
 	move(0,0);
 	//windowHandle()->setPosition(0,0);
+	QScreen *screen = QWidget::screen();
+	if (screen) {
+		qDebug()<< "SCREEN:" << screen->availableGeometry();
+	}
 }
 //-------------------------------------------------------------------------
 void MainWindow::showEvent(QShowEvent *event)

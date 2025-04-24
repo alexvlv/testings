@@ -7,6 +7,8 @@ QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 
+class Dialog;
+
 class MainWindow : public QMainWindow
 {
 	Q_OBJECT
@@ -22,7 +24,7 @@ private slots:
 
 private:
 	void showEvent(QShowEvent *event) override;
-
+	Dialog *dialog = nullptr;
 	Ui::MainWindow *ui;
 };
 #endif // MAINWINDOW_H
