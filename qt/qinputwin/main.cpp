@@ -3,6 +3,7 @@
 
 #include <QDebug>
 #include <QApplication>
+#include <QWindow>
 
 int main(int argc, char *argv[])
 {
@@ -11,5 +12,7 @@ int main(int argc, char *argv[])
 	MainWindow w;
 	QApplication::setFont(w.font());
 	w.show();
+	//w.move(0,0);
+	//w.windowHandle()->setPosition(0,0);
 	return a.exec();
 }
