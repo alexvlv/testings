@@ -7,6 +7,8 @@ namespace Ui {
 class MainWindow;
 }
 
+class KbdWidget;
+
 class MainWindow : public QWidget
 {
 	Q_OBJECT
@@ -17,6 +19,7 @@ public:
 
 private:
 	Ui::MainWindow *ui;
+	KbdWidget *kbdw = nullptr;
 };
 
 #endif // MAINWINDOW_H
