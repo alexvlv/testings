@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1920</width>
-    <height>1200</height>
+    <width>1400</width>
+    <height>900</height>
    </rect>
   </property>
   <property name="font">
@@ -103,6 +103,17 @@
    </item>
    <item>
     <widget class="QLabel" name="lblVersion">
+     <property name="maximumSize">
+      <size>
+       <width>1870</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>24</pointsize>
+      </font>
+     </property>
      <property name="text">
       <string>Version</string>
      </property>
