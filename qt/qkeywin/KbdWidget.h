@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QPushButton>
+#include <QAction>
 
 
 namespace Ui {
@@ -17,15 +18,19 @@ public:
 	explicit KbdWidget(QWidget *parent = nullptr);
 	~KbdWidget();
 
-	void setClients(QList<QWidget *> list);
+	void setClients(QList<QObject *> list);
 
 
 private:
-	void client_activated(QWidget *);
+	void client_activated(QObject *);
 
 	Ui::KbdWidget *ui;
+
+	static const unsigned NUM_KEYS = 15;
+
 	QList<QPushButton *> fbtns;
-	QList<QWidget *> clients;
+	QVector<QAction *> actions;
+	QList<QObject *> clients;
 };
 
 #endif // KBDWIDGET_H
