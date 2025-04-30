@@ -1,8 +1,6 @@
 #include "KbdWidget.h"
 #include "ui_KbdWidget.h"
 
-//#include <QToolBar>
-
 //-------------------------------------------------------------------------
 KbdWidget::KbdWidget(QWidget *parent) :
 	QWidget(parent),
@@ -13,8 +11,16 @@ KbdWidget::KbdWidget(QWidget *parent) :
 	//qDebug()<< __PRETTY_FUNCTION__ << findChildren<QPushButton *>();
 	fbtns = findChildren<QPushButton *>();
 	qDebug()<< __PRETTY_FUNCTION__ << findChildren<QPushButton *>();
-	actions = QVector<QAction *>(10,new QAction(this));
-	//QToolBar *fileToolBar = new QToolBar(this);
+
+	actions = QVector<QAction *>(NUM_KEYS, nullptr);
+	for (ActionIterator it = actions.begin(); it !=  actions.end(); it++) {
+		*it = new QAction(this);
+	}
+
+	ActionIterator it = actions.begin();
+	foreach (QPushButton *btn, fbtns) {
+		connect(btn, &QPushButton::clicked,*it++,&QAction::trigger);
+	}
 }
 //-------------------------------------------------------------------------
 KbdWidget::~KbdWidget()
@@ -25,20 +31,26 @@ KbdWidget::~KbdWidget()
 void KbdWidget::setClients(QList<QObject *> list)
 {
 	clients = list;
-	//for (int i; i < list.size(); i++) {
-	QList<QPushButton *>::iterator it = fbtns.begin();
+	for(ActionIterator it = actions.begin(); it != actions.end(); ++it) {
+		(*it)->setEnabled(false);
+		(*it)->setText("");
+	}
+
+	ActionIterator it = actions.begin();
 	foreach (QObject *cl, clients) {
-		if(*it) {
-			connect(*it, &QPushButton::clicked, this, [this, cl]() { this->client_activated(cl); });
+		if(cl) {
+			connect(*it, &QAction::triggered, this, [this, cl]() { this->client_activated(cl); });
 			(*it)->setEnabled(true);
 		}
 		it++;
 	}
-	for(QList<QPushButton *>::iterator ib = it; ib != fbtns.end(); ++ib) (*ib)->setEnabled(false);
+
+	it = actions.begin();
+	for(ButtonIterator ib = fbtns.begin(); ib != fbtns.end(); ++ib) (*ib)->setEnabled((*it++)->isEnabled());
 }
 //-------------------------------------------------------------------------
 void KbdWidget::client_activated(QObject *client)
 {
-	qDebug()<< __PRETTY_FUNCTION__ << client;
+	qDebug()<< __PRETTY_FUNCTION__ << client << sender();
 }
 //-------------------------------------------------------------------------

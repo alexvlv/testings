@@ -29,8 +29,12 @@ private:
 	static const unsigned NUM_KEYS = 15;
 
 	QList<QPushButton *> fbtns;
+	typedef QList<QPushButton *>::Iterator ButtonIterator;
 	QVector<QAction *> actions;
+	typedef QVector<QAction *>::Iterator ActionIterator;
+
 	QList<QObject *> clients;
+	typedef QList<QObject *>::Iterator ClientIterator;
 };
 
 #endif // KBDWIDGET_H

@@ -17,7 +17,7 @@
    <item>
     <widget class="QPushButton" name="btnF1">
      <property name="text">
-      <string>F1</string>
+      <string>K1</string>
      </property>
      <property name="shortcut">
       <string>F1</string>
@@ -27,7 +27,7 @@
    <item>
     <widget class="QPushButton" name="btnF2">
      <property name="text">
-      <string>F2</string>
+      <string>K2</string>
      </property>
      <property name="shortcut">
       <string>F2</string>
@@ -37,7 +37,7 @@
    <item>
     <widget class="QPushButton" name="btnF3">
      <property name="text">
-      <string>F3</string>
+      <string>K3</string>
      </property>
      <property name="shortcut">
       <string>F3</string>
@@ -47,7 +47,7 @@
    <item>
     <widget class="QPushButton" name="btnF4">
      <property name="text">
-      <string>F4</string>
+      <string>K4</string>
      </property>
      <property name="shortcut">
       <string>F4</string>
@@ -57,7 +57,7 @@
    <item>
     <widget class="QPushButton" name="btnF5">
      <property name="text">
-      <string>F5</string>
+      <string>K5</string>
      </property>
      <property name="shortcut">
       <string>F5</string>
