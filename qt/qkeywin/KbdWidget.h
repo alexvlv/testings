@@ -19,22 +19,26 @@ public:
 	~KbdWidget();
 
 	void setClients(QList<QObject *> list);
+	void setEnabled(QList<int> keys, bool ena = true);
+	void disableAll();
 
+signals:
+	void activated(int);
 
 private:
 	void client_activated(QObject *);
 
 	Ui::KbdWidget *ui;
 
-	static const unsigned NUM_KEYS = 15;
+	static const unsigned NUM_KEYS = (5+12);
 
 	QList<QPushButton *> fbtns;
 	typedef QList<QPushButton *>::Iterator ButtonIterator;
 	QVector<QAction *> actions;
 	typedef QVector<QAction *>::Iterator ActionIterator;
 
-	QList<QObject *> clients;
-	typedef QList<QObject *>::Iterator ClientIterator;
+	//QVector<QObject *> clients;
+	//typedef QVector<QObject *>::Iterator ClientIterator;
 };
 
 #endif // KBDWIDGET_H

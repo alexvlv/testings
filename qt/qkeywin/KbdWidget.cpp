@@ -1,6 +1,8 @@
 #include "KbdWidget.h"
 #include "ui_KbdWidget.h"
 
+#include <cassert>
+
 //-------------------------------------------------------------------------
 KbdWidget::KbdWidget(QWidget *parent) :
 	QWidget(parent),
@@ -13,14 +15,31 @@ KbdWidget::KbdWidget(QWidget *parent) :
 	qDebug()<< __PRETTY_FUNCTION__ << findChildren<QPushButton *>();
 
 	actions = QVector<QAction *>(NUM_KEYS, nullptr);
-	for (ActionIterator it = actions.begin(); it !=  actions.end(); it++) {
+	int i=0;
+	for (ActionIterator it = actions.begin(); it !=  actions.end(); it++, i++) {
 		*it = new QAction(this);
+		(*it)->setEnabled(true);
+		qDebug()<< __PRETTY_FUNCTION__ << i;
+		(*it)->setShortcut(Qt::Key_F11+i);
+		connect(*it, &QAction::triggered, this, [this, i]() {
+			qDebug()<< __PRETTY_FUNCTION__ << i;
+			emit activated(i);
+		});
+		addAction(*it);
 	}
+	//for( int i=0; i<NUM_KEYS; i++ ) actions.at(i)->setShortcut(Qt::Key_F1+i);
+	//for( int i=0; i<10; i++ ) actions.at(i+5)->setShortcut(Qt::Key_F11+i);
+	//actions.at(5)->setShortcut(Qt::Key_F11);
+	//actions.at(6)->setShortcut(Qt::Key_F12);
+	//ctions.at(7)->setShortcut(Qt::Key_F13);
+	//actions.at(8)->setShortcut(Qt::Key_F14);
 
-	ActionIterator it = actions.begin();
-	foreach (QPushButton *btn, fbtns) {
-		connect(btn, &QPushButton::clicked,*it++,&QAction::trigger);
-	}
+	//actions.at(15)->setShortcut(Qt::Key_F10);
+
+	//ActionIterator it = actions.begin();
+	//foreach (QPushButton *btn, fbtns) {
+	//	connect(btn, &QPushButton::clicked,*it++,&QAction::trigger);
+	//}
 }
 //-------------------------------------------------------------------------
 KbdWidget::~KbdWidget()
@@ -28,16 +47,33 @@ KbdWidget::~KbdWidget()
 	delete ui;
 }
 //-------------------------------------------------------------------------
-void KbdWidget::setClients(QList<QObject *> list)
+void KbdWidget::disableAll()
 {
-	clients = list;
 	for(ActionIterator it = actions.begin(); it != actions.end(); ++it) {
 		(*it)->setEnabled(false);
 		(*it)->setText("");
 	}
-
+}
+//-------------------------------------------------------------------------
+void KbdWidget::setEnabled(QList<int> keys, bool ena)
+{
+	foreach (int i, keys) {
+		assert(i<NUM_KEYS);
+		actions.at(i)->setEnabled(ena);
+	}
+}
+//-------------------------------------------------------------------------
+void KbdWidget::setClients(QList<QObject *> list)
+{
+	/*
+	for(ActionIterator it = actions.begin(); it != actions.end(); ++it) {
+		(*it)->setEnabled(false);
+		(*it)->setText("");
+		//(*it)->disconnect();
+	}
+*/
 	ActionIterator it = actions.begin();
-	foreach (QObject *cl, clients) {
+	foreach (QObject *cl, list) {
 		if(cl) {
 			connect(*it, &QAction::triggered, this, [this, cl]() { this->client_activated(cl); });
 			(*it)->setEnabled(true);

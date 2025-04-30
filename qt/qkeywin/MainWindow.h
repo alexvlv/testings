@@ -17,6 +17,9 @@ public:
 	explicit MainWindow(QWidget *parent = nullptr);
 	~MainWindow();
 
+public slots:
+	void onKeyboard(int);
+
 private:
 	Ui::MainWindow *ui;
 	KbdWidget *kbdw = nullptr;

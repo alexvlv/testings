@@ -19,18 +19,12 @@
      <property name="text">
       <string>K1</string>
      </property>
-     <property name="shortcut">
-      <string>F1</string>
-     </property>
     </widget>
    </item>
    <item>
     <widget class="QPushButton" name="btnF2">
      <property name="text">
       <string>K2</string>
-     </property>
-     <property name="shortcut">
-      <string>F2</string>
      </property>
     </widget>
    </item>
@@ -39,9 +33,6 @@
      <property name="text">
       <string>K3</string>
      </property>
-     <property name="shortcut">
-      <string>F3</string>
-     </property>
     </widget>
    </item>
    <item>
@@ -49,18 +40,12 @@
      <property name="text">
       <string>K4</string>
      </property>
-     <property name="shortcut">
-      <string>F4</string>
-     </property>
     </widget>
    </item>
    <item>
     <widget class="QPushButton" name="btnF5">
      <property name="text">
       <string>K5</string>
-     </property>
-     <property name="shortcut">
-      <string>F5</string>
      </property>
     </widget>
    </item>
