@@ -13,20 +13,21 @@ KbdWidget::KbdWidget(QWidget *parent) :
 	//qDebug()<< __PRETTY_FUNCTION__ << findChildren<QPushButton *>();
 	fbtns = findChildren<QPushButton *>();
 	qDebug()<< __PRETTY_FUNCTION__ << findChildren<QPushButton *>();
-
+#if 0
 	actions = QVector<QAction *>(NUM_KEYS, nullptr);
 	int i=0;
 	for (ActionIterator it = actions.begin(); it !=  actions.end(); it++, i++) {
 		*it = new QAction(this);
 		(*it)->setEnabled(true);
 		qDebug()<< __PRETTY_FUNCTION__ << i;
-		(*it)->setShortcut(Qt::Key_F11+i);
+		//(*it)->setShortcut(Qt::Key_F11+i);
 		connect(*it, &QAction::triggered, this, [this, i]() {
 			qDebug()<< __PRETTY_FUNCTION__ << i;
 			emit activated(i);
 		});
 		addAction(*it);
 	}
+#endif
 	//for( int i=0; i<NUM_KEYS; i++ ) actions.at(i)->setShortcut(Qt::Key_F1+i);
 	//for( int i=0; i<10; i++ ) actions.at(i+5)->setShortcut(Qt::Key_F11+i);
 	//actions.at(5)->setShortcut(Qt::Key_F11);
@@ -40,6 +41,17 @@ KbdWidget::KbdWidget(QWidget *parent) :
 	//foreach (QPushButton *btn, fbtns) {
 	//	connect(btn, &QPushButton::clicked,*it++,&QAction::trigger);
 	//}
+
+	//{ int i=0; foreach (QPushButton *btn, fbtns) btn->setShortcut(int(Qt::Key_F11 + i++) ); }
+	//fbtns[0]->setShortcut(Qt::Key_SysReq);
+	//fbtns[1]->setShortcut(Qt::Key_ScrollLock);
+	//fbtns[2]->setShortcut(Qt::Key_Pause);
+	//fbtns[3]->setShortcut(Qt::Key_F11);
+	//fbtns[4]->setShortcut(Qt::Key_F12);
+
+	//EventLogger *ev = new EventLogger(this);
+	//ev->setObjectName(objectName());
+	//installEventFilter(ev);
 }
 //-------------------------------------------------------------------------
 KbdWidget::~KbdWidget()
