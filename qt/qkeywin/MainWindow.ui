@@ -67,6 +67,15 @@
          <height>81</height>
         </rect>
        </property>
+       <property name="styleSheet">
+        <string notr="true">QSpinBox::down-button{
+    width: 50
+}
+QSpinBox::up-button{
+    width: 50
+}
+QSpinBox { font-size: 60px }</string>
+       </property>
       </widget>
       <widget class="QLabel" name="label">
        <property name="geometry">
@@ -99,12 +108,25 @@
         <rect>
          <x>150</x>
          <y>760</y>
-         <width>501</width>
+         <width>421</width>
          <height>71</height>
         </rect>
        </property>
+       <property name="styleSheet">
+        <string notr="true">QCheckBox::indicator {
+     width: 50px;
+     height: 50px;
+}
+QCheckBox { font-size: 60px }</string>
+       </property>
        <property name="text">
         <string>CheckBox</string>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>48</width>
+         <height>16</height>
+        </size>
        </property>
       </widget>
      </widget>
