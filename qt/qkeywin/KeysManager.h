@@ -1,6 +1,11 @@
 #pragma once
 
+#include "macro.h"
+
 #include <QObject>
+#include <QDebug>
+
+#include <functional>
 
 class KeysManager : public QObject
 {
@@ -33,7 +38,17 @@ public:
 		KEY_MAX
 	};
 
+
 signals:
+	void onKey(uint);
+
+	#define SIGNAL_NAME(X) onKey_##X()
+	#define SIGNAL_DECL(X) void SIGNAL_NAME(X)
+
+	SIGNAL_DECL(0); SIGNAL_DECL(1); SIGNAL_DECL(2); SIGNAL_DECL(3);SIGNAL_DECL(4);
+	SIGNAL_DECL(5); SIGNAL_DECL(6); SIGNAL_DECL(7); SIGNAL_DECL(8);SIGNAL_DECL(9);
+	SIGNAL_DECL(NO); SIGNAL_DECL(OK);
+	SIGNAL_DECL(K1); SIGNAL_DECL(K2); SIGNAL_DECL(K3);SIGNAL_DECL(K4); SIGNAL_DECL(K5);
 
 protected:
 	bool eventFilter(QObject *obj, QEvent *event) override;
@@ -74,6 +89,24 @@ private:
 		"UNKNOWN"
 	};
 
-	static  QMap<Qt::Key, int> KeysCodeIdx;
+	static  QMap<Qt::Key, uint> KeysCodeIdx;
 	static  QMap<Qt::Key, const char *> KeysCodeNames;
+
+	static const unsigned NO = 10;
+	static const unsigned OK = 11;
+	static const unsigned K1 = 12;
+	static const unsigned K2 = 13;
+	static const unsigned K3 = 14;
+	static const unsigned K4 = 15;
+	static const unsigned K5 = 16;
+
+	#define EMIT_LAMBDA(X) [this]() { const uint idx=X; qDebug() << "KEY pressed:" << KeyNames[idx] << "[" << xstr(X) << "]" ; Q_EMIT SIGNAL_NAME(X);}
+	using EmitFunc = std::function<void()>;
+	EmitFunc emitters[KEY_MAX] = {
+		EMIT_LAMBDA(0), EMIT_LAMBDA(1), EMIT_LAMBDA(2), EMIT_LAMBDA(3), EMIT_LAMBDA(4),
+		EMIT_LAMBDA(5), EMIT_LAMBDA(6), EMIT_LAMBDA(7), EMIT_LAMBDA(8), EMIT_LAMBDA(9),
+		EMIT_LAMBDA(NO), EMIT_LAMBDA(OK),
+		EMIT_LAMBDA(K1), EMIT_LAMBDA(K2), EMIT_LAMBDA(K3), EMIT_LAMBDA(K4), EMIT_LAMBDA(K5),
+		[this]() { ; }
+	};
 };
