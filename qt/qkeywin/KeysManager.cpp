@@ -44,8 +44,8 @@ void KeysManager::processKeyEvent(QObject *obj, QEvent *event)
 	//qDebug() << "KEY Event on" << obj->objectName() << ":" << event->type() << Qt::hex << evk->key() << KeysCodeNames.value(static_cast<Qt::Key>(evk->key()),"---") << evk->text();
 	uint idx = KeysCodeIdx.value(static_cast<Qt::Key>(evk->key()),KEY_UNKNOWN);
 	if( idx < KEY_UNKNOWN ) {
-		Q_EMIT onKey(idx);
 		emitters[idx]();
+		Q_EMIT onKey(idx);
 	} else {
 		qWarning() << "KEY Unknown :" <<  event->type() << Qt::hex << evk->key() << evk->text();
 	}

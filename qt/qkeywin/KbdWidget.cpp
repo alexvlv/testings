@@ -13,6 +13,7 @@ KbdWidget::KbdWidget(QWidget *parent) :
 	//qDebug()<< __PRETTY_FUNCTION__ << findChildren<QPushButton *>();
 	fbtns = findChildren<QPushButton *>();
 	qDebug()<< __PRETTY_FUNCTION__ << findChildren<QPushButton *>();
+	fbtns.at(0)->setFocus(Qt::ActiveWindowFocusReason);
 #if 0
 	actions = QVector<QAction *>(NUM_KEYS, nullptr);
 	int i=0;

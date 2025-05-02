@@ -18,7 +18,10 @@ MainWindow::MainWindow(QWidget *parent) :
 	//kbdw->setClients({ui->lineEdit,ui->lineEditDigits,ui->textEdit,ui->spinBox});
 	//kbdw->setEnabled({5,6,7,8,9,10,11,12,14,15});
 	layout()->addWidget(kbdw);
-	installEventFilter(new KeysManager(this));
+	KeysManager *keyb = new KeysManager(this);
+	connect(keyb, &KeysManager::onKey, this, &MainWindow::onKeyboard);
+	installEventFilter(keyb);
+	//ui->pushButton->setFocus(Qt::ActiveWindowFocusReason);
 }
 //-------------------------------------------------------------------------
 MainWindow::~MainWindow()
@@ -29,5 +32,24 @@ MainWindow::~MainWindow()
 void MainWindow::onKeyboard(int i) // [slot]
 {
 	qDebug()<< __PRETTY_FUNCTION__ << i << sender();
+	switch (i) {
+	case KeysManager::KEY_K1:
+		ui->lineEdit ->setFocus(Qt::ActiveWindowFocusReason);
+		break;
+	case KeysManager::KEY_K2:
+		ui->textEdit ->setFocus(Qt::ActiveWindowFocusReason);
+		break;
+	case KeysManager::KEY_K3:
+		ui->lineEditDigits ->setFocus(Qt::ActiveWindowFocusReason);
+		break;
+	case KeysManager::KEY_K4:
+		ui->spinBox ->setFocus(Qt::ActiveWindowFocusReason);
+		break;
+	case KeysManager::KEY_K5:
+		ui->checkBox ->setFocus(Qt::ActiveWindowFocusReason);
+		break;
+	default:
+		break;
+	}
 }
 //-------------------------------------------------------------------------
