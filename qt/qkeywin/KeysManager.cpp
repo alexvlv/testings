@@ -2,6 +2,8 @@
 #include <QDebug>
 #include <QEvent>
 #include <QKeyEvent>
+#include <QWidget>
+#include <QtWidgets/qapplication.h>
 
 //-------------------------------------------------------------------------
 QMap<Qt::Key, uint> KeysManager::KeysCodeIdx;
@@ -44,8 +46,16 @@ void KeysManager::processKeyEvent(QObject *obj, QEvent *event)
 	//qDebug() << "KEY Event on" << obj->objectName() << ":" << event->type() << Qt::hex << evk->key() << KeysCodeNames.value(static_cast<Qt::Key>(evk->key()),"---") << evk->text();
 	uint idx = KeysCodeIdx.value(static_cast<Qt::Key>(evk->key()),KEY_UNKNOWN);
 	if( idx < KEY_UNKNOWN ) {
-		emitters[idx]();
-		Q_EMIT onKey(idx);
+		QWidget *wf =  QApplication::focusWidget();
+		if(idx <= KEY_OK && wf ) {
+			qDebug() << wf;
+			QInputMethodEvent ev;
+			ev.setCommitString("X");
+			QCoreApplication::sendEvent(wf,&ev);
+		} else {
+			emitters[idx]();
+			Q_EMIT onKey(idx);
+		}
 	} else {
 		qWarning() << "KEY Unknown :" <<  event->type() << Qt::hex << evk->key() << evk->text();
 	}
