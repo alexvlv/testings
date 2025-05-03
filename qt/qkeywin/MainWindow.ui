@@ -77,24 +77,24 @@ QSpinBox::up-button{
 QSpinBox { font-size: 60px }</string>
        </property>
       </widget>
-      <widget class="QLabel" name="label">
+      <widget class="QLabel" name="labelAlpha">
        <property name="geometry">
         <rect>
-         <x>170</x>
-         <y>680</y>
-         <width>161</width>
+         <x>770</x>
+         <y>770</y>
+         <width>441</width>
          <height>61</height>
         </rect>
        </property>
        <property name="text">
-        <string>TextLabel</string>
+        <string>----</string>
        </property>
       </widget>
       <widget class="QPushButton" name="pushButton">
        <property name="geometry">
         <rect>
-         <x>760</x>
-         <y>750</y>
+         <x>740</x>
+         <y>680</y>
          <width>471</width>
          <height>81</height>
         </rect>
@@ -106,8 +106,8 @@ QSpinBox { font-size: 60px }</string>
       <widget class="QCheckBox" name="checkBox">
        <property name="geometry">
         <rect>
-         <x>150</x>
-         <y>760</y>
+         <x>60</x>
+         <y>680</y>
          <width>421</width>
          <height>71</height>
         </rect>

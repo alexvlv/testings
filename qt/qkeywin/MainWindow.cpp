@@ -20,6 +20,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	layout()->addWidget(kbdw);
 	KeysManager *keyb = new KeysManager(this);
 	connect(keyb, &KeysManager::onKey, this, &MainWindow::onKeyboard);
+	keyb->setLabel(ui->labelAlpha);
 	installEventFilter(keyb);
 	//ui->pushButton->setFocus(Qt::ActiveWindowFocusReason);
 }

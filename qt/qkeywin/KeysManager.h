@@ -3,8 +3,9 @@
 #include "macro.h"
 
 #include <QObject>
+#include <QPointer>
 #include <QDebug>
-
+#include <QtWidgets/qlabel.h>
 #include <functional>
 
 class KeysManager : public QObject
@@ -12,8 +13,10 @@ class KeysManager : public QObject
 	Q_OBJECT
 public:
 	explicit KeysManager(QObject *parent = nullptr);
+	void setLabel(QLabel *);
+	void setShift(bool);
 
-	enum Keys {
+	enum Key {
 		KEY_0 = 0,
 		KEY_1,
 		KEY_2,
@@ -50,11 +53,18 @@ signals:
 	SIGNAL_DECL(NO); SIGNAL_DECL(OK);
 	SIGNAL_DECL(K1); SIGNAL_DECL(K2); SIGNAL_DECL(K3);SIGNAL_DECL(K4); SIGNAL_DECL(K5);
 
+public slots:
+	void doToggleShift();
+
 protected:
 	bool eventFilter(QObject *obj, QEvent *event) override;
+	void timerEvent(QTimerEvent *event) override;
 
 private:
 	void processKeyEvent(QObject *obj, QEvent *event);
+	void processKeyPress(QObject *obj, uint key);
+	void processKeyRelease(QObject *obj, uint key);
+	void processAlphaKey(uint key);
 
 	constexpr static const Qt::Key KeyCodes[KEY_MAX] = {
 		Qt::Key_Pause, // 0
@@ -82,7 +92,7 @@ private:
 		static_cast<Qt::Key>(0)
 	};
 
-	constexpr static const char * const KeyNames[KEY_MAX+1]  = {
+	constexpr static const char * const KeyNames[KEY_MAX]  = {
 		"#0","#1","#2","#3","#4","#5","#6","#7","#8","#9",
 		"NO","OK",
 		"K1","K2","K3","K4","K5",
@@ -109,4 +119,14 @@ private:
 		EMIT_LAMBDA(K1), EMIT_LAMBDA(K2), EMIT_LAMBDA(K3), EMIT_LAMBDA(K4), EMIT_LAMBDA(K5),
 		[this]() { ; }
 	};
+
+	static const QString sAlphKey; // = QString::fromUtf8("1АБВ");
+	static const QStringList sSymbols;
+
+	QPointer<QLabel> label;
+	bool flShift = false;
+	uint currentAlphaKey = KEY_UNKNOWN;
+	uint numAlphaSyms = 0;
+	uint currentSym = 0;
+	int  timerId = -1;
 };
