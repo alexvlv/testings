@@ -141,4 +141,5 @@ private:
 	uint numAlphaSyms = 0;
 	uint currentSym = 0;
 	int  timerId = -1;
+	bool flDigits = false;
 };

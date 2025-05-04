@@ -63,7 +63,10 @@ void KeysManager::startEdit(QWidget * w)
 	if(!w) return;
 	setEditorReadOnly(w, false);
 	flShift = false;
+	flDigits = w->property("digits").toBool();
 	editor = w;
+	qDebug() << __PRETTY_FUNCTION__ << editor << flDigits;
+
 }
 //-------------------------------------------------------------------------
 void KeysManager::setEditorReadOnly(QWidget *w, bool fl)
@@ -78,6 +81,7 @@ void KeysManager::stopEdit(bool ok)
 	Q_EMIT onEditDone(editor, ok);
 	Q_EMIT ok?onEditOk(editor):onEditCancel(editor);
 	setEditorReadOnly(editor, true);
+	qDebug() << __PRETTY_FUNCTION__ << editor << ok;
 	editor = nullptr;
 }
 //-------------------------------------------------------------------------
@@ -117,19 +121,27 @@ void KeysManager::processKeyEvent(QObject *obj, QEvent *event)
 //-------------------------------------------------------------------------
 void KeysManager::processKeyPress(QObject *obj, uint key)
 {
+	QAbstractSpinBox* b= qobject_cast<QAbstractSpinBox *>(editor);
 	if(editor) {
 		if(key <= KEY_OK) {
 			processAlphaKey(key);
 		} else {
 			switch(key) {
 				case KEY_K1:
-					doToggleShift();
-					break;
-				case KEY_K2:
 					stopEdit(false);
 					break;
-				case KEY_K3:
+				case KEY_K2:
 					stopEdit(true);
+					break;
+				case KEY_K3:
+					if(b) b->clear();
+					if(!flDigits) doToggleShift();
+					break;
+				case KEY_K4:
+					if(b) b->stepDown();
+					break;
+			case KEY_K5:
+					if(b) b->stepUp();
 					break;
 			}
 		}
@@ -147,9 +159,20 @@ void KeysManager::processKeyRelease(QObject *obj, uint key)
 void KeysManager::processAlphaKey(uint key)
 {
 	killTimer(timerId);
-	timerId = startTimer(1000);
+	timerId = 0;
 
 	QString syms = sSymbols.at(key);
+
+	if(flDigits) {
+		QInputMethodEvent ev;
+		QString sym = syms.at(0);
+		ev.setCommitString(sym);
+		QCoreApplication::sendEvent(editor,&ev);
+		if(!label.isNull()) label->setVisible(false);
+		return;
+	}
+
+	timerId = startTimer(1000);
 
 	if(key != currentAlphaKey) {
 		numAlphaSyms = syms.size();

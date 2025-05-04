@@ -91,6 +91,9 @@ QSpinBox { font-size: 60px }</string>
        <property name="readOnly">
         <bool>true</bool>
        </property>
+       <property name="digits" stdset="0">
+        <bool>true</bool>
+       </property>
       </widget>
       <widget class="QLabel" name="labelAlpha">
        <property name="geometry">
