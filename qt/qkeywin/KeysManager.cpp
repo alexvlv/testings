@@ -4,7 +4,9 @@
 #include <QKeyEvent>
 #include <QWidget>
 #include <QtWidgets/qapplication.h>
-
+#include <QtWidgets/qlineedit.h>
+#include <QtWidgets/qtextedit.h>
+#include <QtWidgets/qabstractspinbox.h>
 
 
 //-------------------------------------------------------------------------
@@ -50,7 +52,35 @@ void KeysManager::setLabel(QLabel *l)
 	label = l;
 }
 //-------------------------------------------------------------------------
-void setLabel(const QLabel *);
+void KeysManager::startEdit(QWidget * w)
+{
+	assert(!editor);
+	if(w) {
+		w->setFocus(Qt::ActiveWindowFocusReason);
+	} else {
+		w = QApplication::focusWidget();
+	}
+	if(!w) return;
+	setEditorReadOnly(w, false);
+	flShift = false;
+	editor = w;
+}
+//-------------------------------------------------------------------------
+void KeysManager::setEditorReadOnly(QWidget *w, bool fl)
+{
+	if(setReadOnly<QLineEdit>(w,fl)) return;
+	if(setReadOnly<QTextEdit>(w,fl)) return;
+	if(setReadOnly<QAbstractSpinBox>(w,fl)) return;
+}
+//-------------------------------------------------------------------------
+void KeysManager::stopEdit(bool ok)
+{
+	Q_EMIT onEditDone(editor, ok);
+	Q_EMIT ok?onEditOk(editor):onEditCancel(editor);
+	setEditorReadOnly(editor, true);
+	editor = nullptr;
+}
+//-------------------------------------------------------------------------
 bool KeysManager::eventFilter(QObject *obj, QEvent *event)
 {
 	switch (event->type()) {
@@ -87,9 +117,22 @@ void KeysManager::processKeyEvent(QObject *obj, QEvent *event)
 //-------------------------------------------------------------------------
 void KeysManager::processKeyPress(QObject *obj, uint key)
 {
-	QWidget *focus =  QApplication::focusWidget();
-	if(key <= KEY_OK && focus ) {
-		processAlphaKey(key);
+	if(editor) {
+		if(key <= KEY_OK) {
+			processAlphaKey(key);
+		} else {
+			switch(key) {
+				case KEY_K1:
+					doToggleShift();
+					break;
+				case KEY_K2:
+					stopEdit(false);
+					break;
+				case KEY_K3:
+					stopEdit(true);
+					break;
+			}
+		}
 	} else {
 		emitters[key]();
 		Q_EMIT onKey(key);
@@ -117,7 +160,8 @@ void KeysManager::processAlphaKey(uint key)
 		if(++currentSym >= numAlphaSyms) currentSym=0;
 	}
 	if(!label.isNull()) {
-		QString s = syms.left(currentSym)+ "<b>" + syms[currentSym] + "</b>" + syms.right(numAlphaSyms-currentSym-1);
+		QString s = "[" + syms.left(currentSym)+ "<b>" + syms[currentSym] + "</b>" + syms.right(numAlphaSyms-currentSym-1) + "]";
+		if(!flShift) s= s.toLower();
 		label->setText(s);
 		label->setVisible(true);
 		qDebug() << __PRETTY_FUNCTION__  << s;
@@ -126,12 +170,13 @@ void KeysManager::processAlphaKey(uint key)
 //-------------------------------------------------------------------------
 void KeysManager::timerEvent(QTimerEvent *event)
 {
-	QWidget *focus =  QApplication::focusWidget();
-	if(focus && currentAlphaKey <= KEY_9) {
+	if(editor && currentAlphaKey <= KEY_9) {
 		QInputMethodEvent ev;
 		assert(currentSym < sSymbols.at(currentAlphaKey).size());
-		ev.setCommitString(sSymbols.at(currentAlphaKey).at(currentSym));
-		QCoreApplication::sendEvent(focus,&ev);
+		QString sym = sSymbols.at(currentAlphaKey).at(currentSym);
+		if(!flShift) sym= sym.toLower();
+		ev.setCommitString(sym);
+		QCoreApplication::sendEvent(editor,&ev);
 	}
 	currentAlphaKey = KEY_UNKNOWN;
 	currentSym = 0;

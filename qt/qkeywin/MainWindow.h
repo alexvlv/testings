@@ -8,6 +8,7 @@ class MainWindow;
 }
 
 class KbdWidget;
+class KeysManager;
 
 class MainWindow : public QWidget
 {
@@ -23,6 +24,7 @@ public slots:
 private:
 	Ui::MainWindow *ui;
 	KbdWidget *kbdw = nullptr;
+	KeysManager *keyb = nullptr;
 };
 
 #endif // MAINWINDOW_H

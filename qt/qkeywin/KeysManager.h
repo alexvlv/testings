@@ -15,6 +15,7 @@ public:
 	explicit KeysManager(QObject *parent = nullptr);
 	void setLabel(QLabel *);
 	void setShift(bool);
+	void startEdit(QWidget * = nullptr);
 
 	enum Key {
 		KEY_0 = 0,
@@ -28,7 +29,7 @@ public:
 		KEY_8,
 		KEY_9,
 
-		KEY_NO,
+		KEY_DEL,
 		KEY_OK,
 
 		KEY_K1,
@@ -53,6 +54,10 @@ signals:
 	SIGNAL_DECL(NO); SIGNAL_DECL(OK);
 	SIGNAL_DECL(K1); SIGNAL_DECL(K2); SIGNAL_DECL(K3);SIGNAL_DECL(K4); SIGNAL_DECL(K5);
 
+	void onEditDone(QWidget *, bool);
+	void onEditOk(QWidget *);
+	void onEditCancel(QWidget *);
+
 public slots:
 	void doToggleShift();
 
@@ -65,6 +70,12 @@ private:
 	void processKeyPress(QObject *obj, uint key);
 	void processKeyRelease(QObject *obj, uint key);
 	void processAlphaKey(uint key);
+	void stopEdit(bool ok);
+
+	template<typename T>
+	bool setReadOnly(QWidget *w, bool fl) { T* p= qobject_cast<T *>(w); if(p) p->setReadOnly(fl); return (p!=nullptr);};
+
+	void setEditorReadOnly(QWidget *w, bool fl);
 
 	constexpr static const Qt::Key KeyCodes[KEY_MAX] = {
 		Qt::Key_Pause, // 0
@@ -84,9 +95,9 @@ private:
 		Qt::Key_Backspace, // NO
 		Qt::Key_Return, // OK
 
-		Qt::Key_F1,
-		Qt::Key_F2,
-		Qt::Key_F3,
+		Qt::Key_F1,   // in edit mode: Shift
+		Qt::Key_F2,   // in edit mode: Cancel
+		Qt::Key_F3,   // in edit mode: OK
 		Qt::Key_F4,
 		Qt::Key_F5,
 		static_cast<Qt::Key>(0)
@@ -124,6 +135,7 @@ private:
 	static const QStringList sSymbols;
 
 	QPointer<QLabel> label;
+	QWidget *editor = nullptr;
 	bool flShift = false;
 	uint currentAlphaKey = KEY_UNKNOWN;
 	uint numAlphaSyms = 0;
