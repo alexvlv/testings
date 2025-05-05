@@ -89,6 +89,16 @@
          <property name="text">
           <string>Cancel</string>
          </property>
+         <property name="icon">
+          <iconset resource="icons.qrc">
+           <normaloff>:/ico/ico/cancel.png</normaloff>:/ico/ico/cancel.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>80</width>
+           <height>80</height>
+          </size>
+         </property>
         </widget>
        </item>
        <item>
@@ -107,6 +117,16 @@
          </property>
          <property name="text">
           <string>OK</string>
+         </property>
+         <property name="icon">
+          <iconset resource="icons.qrc">
+           <normaloff>:/ico/ico/checkmark.png</normaloff>:/ico/ico/checkmark.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>80</width>
+           <height>80</height>
+          </size>
          </property>
         </widget>
        </item>
@@ -127,6 +147,12 @@
          <property name="text">
           <string>Shift</string>
          </property>
+         <property name="iconSize">
+          <size>
+           <width>64</width>
+           <height>64</height>
+          </size>
+         </property>
         </widget>
        </item>
        <item>
@@ -146,6 +172,16 @@
          <property name="text">
           <string>Down</string>
          </property>
+         <property name="icon">
+          <iconset resource="icons.qrc">
+           <normaloff>:/ico/ico/arm_down.png</normaloff>:/ico/ico/arm_down.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>80</width>
+           <height>80</height>
+          </size>
+         </property>
         </widget>
        </item>
        <item>
@@ -164,6 +200,16 @@
          </property>
          <property name="text">
           <string>Up</string>
+         </property>
+         <property name="icon">
+          <iconset resource="icons.qrc">
+           <normaloff>:/ico/ico/arm_up.png</normaloff>:/ico/ico/arm_up.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>80</width>
+           <height>80</height>
+          </size>
          </property>
         </widget>
        </item>
@@ -196,6 +242,8 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="icons.qrc"/>
+ </resources>
  <connections/>
 </ui>
