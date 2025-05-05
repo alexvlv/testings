@@ -40,11 +40,13 @@ KeysManager::KeysManager(QObject *parent)
 void KeysManager::setShift(bool fl)
 {
 	flShift = fl;
+	Q_EMIT onShift(flShift);
 }
 //-------------------------------------------------------------------------
 void KeysManager::doToggleShift() // [Slot]
 {
 	flShift = !flShift;
+	Q_EMIT onShift(flShift);
 }
 //-------------------------------------------------------------------------
 void KeysManager::setLabel(QLabel *l)

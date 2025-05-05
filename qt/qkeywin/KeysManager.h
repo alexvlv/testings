@@ -62,7 +62,7 @@ signals:
 	void onEditDone(QWidget *, bool);
 	void onEditOk(QWidget *);
 	void onEditCancel(QWidget *);
-
+	void onShift(bool);
 
 protected:
 	bool eventFilter(QObject *obj, QEvent *event) override;

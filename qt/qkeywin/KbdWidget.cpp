@@ -19,7 +19,7 @@ KbdWidget::KbdWidget(KeysManager *keyb, QWidget *parent) :
 	connect(keyb, &KeysManager::onKey, this, &KbdWidget::onKeyboard);
 	connect(keyb, &KeysManager::onStartEdit, this,  &KbdWidget::onStartEdit);
 	connect(keyb, &KeysManager::onEditDone, this,  &KbdWidget::onEditDone);
-
+	connect(keyb, &KeysManager::onShift, ui->btnShift,&QPushButton::setChecked);
 	//connect(ui->btnCancel, &QPushButton::clicked, keyb
 
 	kbtns = findChildren<QPushButton *>(QRegularExpression("btnK"));
