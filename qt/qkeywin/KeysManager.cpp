@@ -200,6 +200,8 @@ void KeysManager::processAlphaKey(uint key)
 //-------------------------------------------------------------------------
 void KeysManager::timerEvent(QTimerEvent *event)
 {
+	killTimer(timerId);
+	timerId = 0;
 	if(editor && currentAlphaKey <= KEY_9) {
 		QInputMethodEvent ev;
 		assert(currentSym < sSymbols.at(currentAlphaKey).size());

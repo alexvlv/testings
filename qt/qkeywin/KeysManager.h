@@ -143,6 +143,6 @@ private:
 	uint currentAlphaKey = KEY_UNKNOWN;
 	uint numAlphaSyms = 0;
 	uint currentSym = 0;
-	int  timerId = -1;
+	int  timerId = 0;
 	bool flDigits = false;
 };
