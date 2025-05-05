@@ -13,16 +13,11 @@ MainWindow::MainWindow(QWidget *parent) :
 	ui->setupUi(this);
 	ui->lblVersion->setText(APPNAME " GIT rev.: <b>" GIT_REV "</b> at <u>" GIT_DATE "</u> on " GIT_BRANCH " [Build: " BUILD_TIMESTAMP " UTC]");
 
-	kbdw = new KbdWidget(this);
-	connect(kbdw, &KbdWidget::activated, this, &MainWindow::onKeyboard);
-	//kbdw->setClients({ui->lineEdit,ui->lineEditDigits,ui->textEdit,ui->spinBox});
-	//kbdw->setEnabled({5,6,7,8,9,10,11,12,14,15});
-	layout()->addWidget(kbdw);
 	keyb = new KeysManager(this);
 	connect(keyb, &KeysManager::onKey, this, &MainWindow::onKeyboard);
-	keyb->setLabel(ui->labelAlpha);
 	installEventFilter(keyb);
-	//ui->pushButton->setFocus(Qt::ActiveWindowFocusReason);
+	kbdw = new KbdWidget(keyb, this);
+	layout()->addWidget(kbdw);
 }
 //-------------------------------------------------------------------------
 MainWindow::~MainWindow()

@@ -52,7 +52,12 @@ void KeysManager::setLabel(QLabel *l)
 	label = l;
 }
 //-------------------------------------------------------------------------
-void KeysManager::startEdit(QWidget * w)
+bool KeysManager::isSpinBox() const
+{
+	return qobject_cast<QAbstractSpinBox *>(editor)!=nullptr;
+}
+//-------------------------------------------------------------------------
+void KeysManager::startEdit(QWidget * w) // [Slot]
 {
 	assert(!editor);
 	if(w) {
@@ -65,7 +70,9 @@ void KeysManager::startEdit(QWidget * w)
 	flShift = false;
 	flDigits = w->property("digits").toBool();
 	editor = w;
+	if(!label.isNull())  label->setText("");
 	qDebug() << __PRETTY_FUNCTION__ << editor << flDigits;
+	Q_EMIT onStartEdit(editor);
 
 }
 //-------------------------------------------------------------------------
@@ -134,13 +141,11 @@ void KeysManager::processKeyPress(QObject *obj, uint key)
 					stopEdit(true);
 					break;
 				case KEY_K3:
-					if(b) b->clear();
+					//if(b) b->clear();
 					if(!flDigits) doToggleShift();
-					break;
-				case KEY_K4:
 					if(b) b->stepDown();
 					break;
-			case KEY_K5:
+				case KEY_K4:
 					if(b) b->stepUp();
 					break;
 			}
@@ -168,7 +173,7 @@ void KeysManager::processAlphaKey(uint key)
 		QString sym = syms.at(0);
 		ev.setCommitString(sym);
 		QCoreApplication::sendEvent(editor,&ev);
-		if(!label.isNull()) label->setVisible(false);
+		if(!label.isNull()) label->setText("");
 		return;
 	}
 
@@ -186,7 +191,7 @@ void KeysManager::processAlphaKey(uint key)
 		QString s = "[" + syms.left(currentSym)+ "<b>" + syms[currentSym] + "</b>" + syms.right(numAlphaSyms-currentSym-1) + "]";
 		if(!flShift) s= s.toLower();
 		label->setText(s);
-		label->setVisible(true);
+		//label->setVisible(true);
 		qDebug() << __PRETTY_FUNCTION__  << s;
 	}
 }
@@ -203,7 +208,7 @@ void KeysManager::timerEvent(QTimerEvent *event)
 	}
 	currentAlphaKey = KEY_UNKNOWN;
 	currentSym = 0;
-	if(!label.isNull()) label->setVisible(false);
+	if(!label.isNull())  label->setText("");
 }
 //-------------------------------------------------------------------------
 /*

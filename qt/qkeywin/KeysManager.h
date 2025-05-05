@@ -15,7 +15,8 @@ public:
 	explicit KeysManager(QObject *parent = nullptr);
 	void setLabel(QLabel *);
 	void setShift(bool);
-	void startEdit(QWidget * = nullptr);
+	bool isDigits() const { return flDigits; }
+	bool isSpinBox() const;
 
 	enum Key {
 		KEY_0 = 0,
@@ -42,9 +43,13 @@ public:
 		KEY_MAX
 	};
 
+public slots:
+	void startEdit(QWidget * = nullptr);
+	void doToggleShift();
 
 signals:
 	void onKey(uint);
+	void onStartEdit(QWidget *);
 
 	#define SIGNAL_NAME(X) onKey_##X()
 	#define SIGNAL_DECL(X) void SIGNAL_NAME(X)
@@ -58,8 +63,6 @@ signals:
 	void onEditOk(QWidget *);
 	void onEditCancel(QWidget *);
 
-public slots:
-	void doToggleShift();
 
 protected:
 	bool eventFilter(QObject *obj, QEvent *event) override;

@@ -10,35 +10,29 @@ namespace Ui {
 class KbdWidget;
 }
 
+class KeysManager;
+
 class KbdWidget : public QWidget
 {
 	Q_OBJECT
 
 public:
-	explicit KbdWidget(QWidget *parent = nullptr);
+	explicit KbdWidget(KeysManager *keyb, QWidget *parent = nullptr);
 	~KbdWidget();
 
-	void setClients(QList<QObject *> list);
-	void setEnabled(QList<int> keys, bool ena = true);
-	void disableAll();
+public slots:
+	void onStartEdit(QWidget * = nullptr);
+	void onEditDone(QWidget *, bool);
+	void onKeyboard(int);
 
 signals:
 	void activated(int);
 
 private:
-	void client_activated(QObject *);
-
 	Ui::KbdWidget *ui;
+	KeysManager *keyb = nullptr;
+	QList<QPushButton *> kbtns;
 
-	static const unsigned NUM_KEYS = (5+12);
-
-	QList<QPushButton *> fbtns;
-	typedef QList<QPushButton *>::Iterator ButtonIterator;
-	QVector<QAction *> actions;
-	typedef QVector<QAction *>::Iterator ActionIterator;
-
-	//QVector<QObject *> clients;
-	//typedef QVector<QObject *>::Iterator ClientIterator;
 };
 
 #endif // KBDWIDGET_H
