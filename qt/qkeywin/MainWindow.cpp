@@ -5,6 +5,8 @@
 #include "KbdWidget.h"
 #include "KeysManager.h"
 
+#include <QLayout>
+
 //-------------------------------------------------------------------------
 MainWindow::MainWindow(QWidget *parent) :
 	QWidget(parent),
@@ -17,6 +19,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	connect(keyb, &KeysManager::onKey, this, &MainWindow::onKeyboard);
 	installEventFilter(keyb);
 	kbdw = new KbdWidget(keyb, this);
+	//kbdw->move(0,1100);
 	layout()->addWidget(kbdw);
 }
 //-------------------------------------------------------------------------
