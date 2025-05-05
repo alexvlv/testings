@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QWidget>
+#include <QtWidgets/qpushbutton.h>
 
 namespace Ui {
 class MainWindow;
@@ -25,6 +26,7 @@ private:
 	Ui::MainWindow *ui;
 	KbdWidget *kbdw = nullptr;
 	KeysManager *keyb = nullptr;
+	QList<QPushButton *> kbtns;
 };
 
 #endif // MAINWINDOW_H

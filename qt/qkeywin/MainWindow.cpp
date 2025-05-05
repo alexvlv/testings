@@ -21,6 +21,14 @@ MainWindow::MainWindow(QWidget *parent) :
 	kbdw = new KbdWidget(keyb, this);
 	//kbdw->move(0,1100);
 	layout()->addWidget(kbdw);
+	kbtns = findChildren<QPushButton *>(QRegularExpression("btn_N"));
+
+	struct {
+		bool operator()(const QPushButton *a, const QPushButton *b) const { return a->objectName() < b->objectName(); }
+	} objectNameSort;
+	std::sort(kbtns.begin(),kbtns.end(),objectNameSort);
+	//std::sort(kbtns.begin(),kbtns.end(),[](const QObject *a, const QObject *b) { return a->objectName() < b->objectName();});
+	//qDebug()<< __PRETTY_FUNCTION__ << kbtns;
 }
 //-------------------------------------------------------------------------
 MainWindow::~MainWindow()
@@ -30,7 +38,7 @@ MainWindow::~MainWindow()
 //-------------------------------------------------------------------------
 void MainWindow::onKeyboard(int i) // [slot]
 {
-	qDebug()<< __PRETTY_FUNCTION__ << i << sender();
+	//qDebug()<< __PRETTY_FUNCTION__ << i << sender();
 	switch (i) {
 	case KeysManager::KEY_K1:
 		//ui->lineEdit->setFocus(Qt::ActiveWindowFocusReason);
@@ -38,23 +46,21 @@ void MainWindow::onKeyboard(int i) // [slot]
 		keyb->startEdit(ui->lineEdit);
 		break;
 	case KeysManager::KEY_K2:
-		//ui->textEdit ->setFocus(Qt::ActiveWindowFocusReason);
-		//ui->textEdit->setReadOnly(false);
 		keyb->startEdit(ui->textEdit);
 		break;
 	case KeysManager::KEY_K3:
-		//ui->lineEditDigits ->setFocus(Qt::ActiveWindowFocusReason);
-		//ui->lineEditDigits->setReadOnly(false);
 		keyb->startEdit(ui->lineEditDigits);
 		break;
 	case KeysManager::KEY_K4:
-		//ui->spinBox ->setFocus(Qt::ActiveWindowFocusReason);
 		keyb->startEdit(ui->spinBox);
 		break;
 	case KeysManager::KEY_K5:
-		ui->checkBox ->setFocus(Qt::ActiveWindowFocusReason);
+		ui->checkBox->setChecked(!ui->checkBox->isChecked());
 		break;
 	default:
+		if(i<=KeysManager::KEY_9) {
+			kbtns[i]->animateClick();
+		}
 		break;
 	}
 }

@@ -23,6 +23,7 @@ KbdWidget::KbdWidget(KeysManager *keyb, QWidget *parent) :
 	//connect(ui->btnCancel, &QPushButton::clicked, keyb
 
 	kbtns = findChildren<QPushButton *>(QRegularExpression("btnK"));
+	std::sort(kbtns.begin(),kbtns.end(),[](const QObject *a, const QObject *b) { return a->objectName() < b->objectName();});
 	//qDebug()<< __PRETTY_FUNCTION__ << kbtns;
 
 }
@@ -34,7 +35,7 @@ KbdWidget::~KbdWidget()
 //-------------------------------------------------------------------------
 void KbdWidget::onKeyboard(int key) // [slot]
 {
-	qDebug()<< __PRETTY_FUNCTION__ << key << sender();
+	//qDebug()<< __PRETTY_FUNCTION__ << key << sender();
 	switch (key) {
 		case KeysManager::KEY_K1:
 		case KeysManager::KEY_K2:

@@ -183,7 +183,7 @@ void KeysManager::processAlphaKey(uint key)
 
 	if(key != currentAlphaKey) {
 		numAlphaSyms = syms.size();
-		qDebug() << __PRETTY_FUNCTION__ << KeyNames[key] << numAlphaSyms;
+		//qDebug() << __PRETTY_FUNCTION__ << KeyNames[key] << numAlphaSyms;
 		currentSym = 0;
 		currentAlphaKey = key;
 	} else {
@@ -194,7 +194,7 @@ void KeysManager::processAlphaKey(uint key)
 		if(!flShift) s= s.toLower();
 		label->setText(s);
 		//label->setVisible(true);
-		qDebug() << __PRETTY_FUNCTION__  << s;
+		//qDebug() << __PRETTY_FUNCTION__  << s;
 	}
 }
 //-------------------------------------------------------------------------
