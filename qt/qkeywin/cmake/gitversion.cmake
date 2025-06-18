@@ -4,6 +4,7 @@ cmake_minimum_required(VERSION 3.0.0)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 set(_build_version "unknown")
+set(_build_user "unknown")
 set(_git_hash "")
 set(_git_branch "")
 set(_git_date "")
@@ -58,6 +59,13 @@ else()
 endif()
 
 string(TIMESTAMP _build_timestamp "%Y-%m-%d %H:%M" )
+
+execute_process(
+	COMMAND whoami
+	OUTPUT_VARIABLE _build_user
+	ERROR_QUIET
+	OUTPUT_STRIP_TRAILING_WHITESPACE
+)
 
 configure_file(${CMAKE_CURRENT_LIST_DIR}/gitversion.h.in ${CMAKE_CURRENT_BINARY_DIR}/${GIT_HEADER} @ONLY)
 
