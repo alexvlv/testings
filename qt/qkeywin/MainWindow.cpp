@@ -7,6 +7,11 @@
 
 #include <QLayout>
 
+#ifdef Q_PROCESSOR_ARM
+#define FONT_SIZE 48
+#endif
+
+
 //-------------------------------------------------------------------------
 MainWindow::MainWindow(QWidget *parent) :
 	QWidget(parent),
@@ -19,7 +24,6 @@ MainWindow::MainWindow(QWidget *parent) :
 	connect(keyb, &KeysManager::onKey, this, &MainWindow::onKeyboard);
 	installEventFilter(keyb);
 	kbdw = new KbdWidget(keyb, this);
-	//kbdw->move(0,1100);
 	layout()->addWidget(kbdw);
 	kbtns = findChildren<QPushButton *>(QRegularExpression("btn_N"));
 
@@ -29,6 +33,10 @@ MainWindow::MainWindow(QWidget *parent) :
 	std::sort(kbtns.begin(),kbtns.end(),objectNameSort);
 	//std::sort(kbtns.begin(),kbtns.end(),[](const QObject *a, const QObject *b) { return a->objectName() < b->objectName();});
 	//qDebug()<< __PRETTY_FUNCTION__ << kbtns;
+#ifndef Q_PROCESSOR_ARM
+	ui->spinBox->setStyleSheet("QSpinBox::down-button{ width: 24 } QSpinBox::up-button{ width: 24 } QSpinBox { font-size: 16px }");
+	ui->checkBox->setStyleSheet("QCheckBox::indicator { width: 24px; height: 24px;} QCheckBox { font-size: 16px }");
+#endif
 }
 //-------------------------------------------------------------------------
 MainWindow::~MainWindow()
@@ -65,3 +73,19 @@ void MainWindow::onKeyboard(int i) // [slot]
 	}
 }
 //-------------------------------------------------------------------------
+/*
+QSpinBox::down-button{
+	width: 50
+}
+QSpinBox::up-button{
+	width: 50
+}
+QSpinBox { font-size: 60px }
+
+QCheckBox::indicator {
+	 width: 50px;
+	 height: 50px;
+}
+QCheckBox { font-size: 60px }
+
+*/

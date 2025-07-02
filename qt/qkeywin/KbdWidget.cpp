@@ -6,6 +6,12 @@
 #include <QTimer>
 #include <cassert>
 
+#ifndef Q_PROCESSOR_ARM
+#define BUTTON_MIN_WIDTH 30
+#endif
+
+
+
 //-------------------------------------------------------------------------
 KbdWidget::KbdWidget(KeysManager *keyb, QWidget *parent) :
 	QWidget(parent),keyb(keyb),
@@ -25,7 +31,9 @@ KbdWidget::KbdWidget(KeysManager *keyb, QWidget *parent) :
 	kbtns = findChildren<QPushButton *>(QRegularExpression("btnK"));
 	std::sort(kbtns.begin(),kbtns.end(),[](const QObject *a, const QObject *b) { return a->objectName() < b->objectName();});
 	//qDebug()<< __PRETTY_FUNCTION__ << kbtns;
-
+#ifdef BUTTON_MIN_WIDTH
+	foreach (QPushButton *b, findChildren<QPushButton *>()) b->setMinimumSize(BUTTON_MIN_WIDTH,0);
+#endif
 }
 //-------------------------------------------------------------------------
 KbdWidget::~KbdWidget()
