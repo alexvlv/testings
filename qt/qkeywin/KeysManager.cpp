@@ -37,10 +37,9 @@ KeysManager::KeysManager(QObject *parent)
 	}
 }
 //-------------------------------------------------------------------------
-void KeysManager::setShift(bool fl)
+void KeysManager::setShift(bool fl) // [Slot]
 {
 	flShift = fl;
-	Q_EMIT onShift(flShift);
 }
 //-------------------------------------------------------------------------
 void KeysManager::doToggleShift() // [Slot]
@@ -61,7 +60,7 @@ bool KeysManager::isSpinBox() const
 //-------------------------------------------------------------------------
 void KeysManager::startEdit(QWidget * w) // [Slot]
 {
-	assert(!editor);
+	if(editor) return;
 	if(w) {
 		w->setFocus(Qt::ActiveWindowFocusReason);
 	} else {
@@ -85,13 +84,24 @@ void KeysManager::setEditorReadOnly(QWidget *w, bool fl)
 	if(setReadOnly<QAbstractSpinBox>(w,fl)) return;
 }
 //-------------------------------------------------------------------------
-void KeysManager::stopEdit(bool ok)
+void KeysManager::stopEdit(bool ok) // [Slot]
 {
+	if(!editor) return;
 	Q_EMIT onEditDone(editor, ok);
 	Q_EMIT ok?onEditOk(editor):onEditCancel(editor);
 	setEditorReadOnly(editor, true);
 	qDebug() << __PRETTY_FUNCTION__ << editor << ok;
 	editor = nullptr;
+}
+//-------------------------------------------------------------------------
+void KeysManager::stopEditOK() // [Slot]
+{
+	stopEdit(true);
+}
+//-------------------------------------------------------------------------
+void KeysManager::stopEditCancel() // [Slot]
+{
+	stopEdit(false);
 }
 //-------------------------------------------------------------------------
 bool KeysManager::eventFilter(QObject *obj, QEvent *event)

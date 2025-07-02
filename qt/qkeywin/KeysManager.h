@@ -14,7 +14,6 @@ class KeysManager : public QObject
 public:
 	explicit KeysManager(QObject *parent = nullptr);
 	void setLabel(QLabel *);
-	void setShift(bool);
 	bool isDigits() const { return flDigits; }
 	bool isSpinBox() const;
 
@@ -45,7 +44,11 @@ public:
 
 public slots:
 	void startEdit(QWidget * = nullptr);
+	void setShift(bool);
 	void doToggleShift();
+	void stopEdit(bool ok = false);
+	void stopEditOK();
+	void stopEditCancel();
 
 signals:
 	void onKey(uint);
@@ -73,7 +76,6 @@ private:
 	void processKeyPress(QObject *obj, uint key);
 	void processKeyRelease(QObject *obj, uint key);
 	void processAlphaKey(uint key);
-	void stopEdit(bool ok);
 
 	template<typename T>
 	bool setReadOnly(QWidget *w, bool fl) { T* p= qobject_cast<T *>(w); if(p) p->setReadOnly(fl); return (p!=nullptr);};

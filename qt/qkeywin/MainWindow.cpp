@@ -25,14 +25,22 @@ MainWindow::MainWindow(QWidget *parent) :
 	installEventFilter(keyb);
 	kbdw = new KbdWidget(keyb, this);
 	layout()->addWidget(kbdw);
-	kbtns = findChildren<QPushButton *>(QRegularExpression("btn_N"));
 
+	kbtns = findChildren<QPushButton *>(QRegularExpression("btn_N"));
+	connect(kbdw, &KbdWidget::onFkey, this, &MainWindow::onKeyButtonClicked);
 	struct {
 		bool operator()(const QPushButton *a, const QPushButton *b) const { return a->objectName() < b->objectName(); }
 	} objectNameSort;
 	std::sort(kbtns.begin(),kbtns.end(),objectNameSort);
 	//std::sort(kbtns.begin(),kbtns.end(),[](const QObject *a, const QObject *b) { return a->objectName() < b->objectName();});
 	//qDebug()<< __PRETTY_FUNCTION__ << kbtns;
+	for (int i=0; i<kbtns.size();i++) {
+		const QPushButton *b = kbtns[i];
+		connect(b, &QPushButton::clicked, [this, i, b ]() { qDebug() << "#-Button clicked:" << i << b; });
+	}
+	connect(ui->pushButton,  &QPushButton::clicked, [this](bool ok){ qDebug() << "Button clicked:" << ok; } );
+	connect(ui->checkBox,  &QPushButton::toggled, [this](bool ok){ qDebug() << "checkBox clicked:" << ok << sender(); } );
+
 #ifndef Q_PROCESSOR_ARM
 	ui->spinBox->setStyleSheet("QSpinBox::down-button{ width: 24 } QSpinBox::up-button{ width: 24 } QSpinBox { font-size: 16px }");
 	ui->checkBox->setStyleSheet("QCheckBox::indicator { width: 24px; height: 24px;} QCheckBox { font-size: 16px }");
@@ -44,9 +52,9 @@ MainWindow::~MainWindow()
 	delete ui;
 }
 //-------------------------------------------------------------------------
-void MainWindow::onKeyboard(int i) // [slot]
+void MainWindow::onKeyButtonClicked(int i) // [slot]
 {
-	//qDebug()<< __PRETTY_FUNCTION__ << i << sender();
+	qDebug()<< __PRETTY_FUNCTION__ << i << sender();
 	switch (i) {
 	case KeysManager::KEY_K1:
 		//ui->lineEdit->setFocus(Qt::ActiveWindowFocusReason);
@@ -64,6 +72,20 @@ void MainWindow::onKeyboard(int i) // [slot]
 		break;
 	case KeysManager::KEY_K5:
 		ui->checkBox->setChecked(!ui->checkBox->isChecked());
+		break;
+	}
+}
+//-------------------------------------------------------------------------
+void MainWindow::onKeyboard(int i) // [slot]
+{
+	//qDebug()<< __PRETTY_FUNCTION__ << i << sender();
+	switch (i) {
+	case KeysManager::KEY_K1:
+	case KeysManager::KEY_K2:
+	case KeysManager::KEY_K3:
+	case KeysManager::KEY_K4:
+	case KeysManager::KEY_K5:
+		//onKeyButtonClicked(i);
 		break;
 	default:
 		if(i<=KeysManager::KEY_9) {

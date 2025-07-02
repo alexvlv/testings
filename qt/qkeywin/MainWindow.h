@@ -21,6 +21,7 @@ public:
 
 public slots:
 	void onKeyboard(int);
+	void onKeyButtonClicked(int);
 
 private:
 	Ui::MainWindow *ui;

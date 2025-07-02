@@ -26,7 +26,7 @@ public slots:
 	void onKeyboard(int);
 
 signals:
-	void activated(int);
+	void onFkey(int);
 
 private:
 	Ui::KbdWidget *ui;
