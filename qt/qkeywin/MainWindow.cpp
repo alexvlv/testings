@@ -6,6 +6,7 @@
 #include "KeysManager.h"
 
 #include <QLayout>
+#include <QStatusBar>
 
 #ifdef Q_PROCESSOR_ARM
 #define FONT_SIZE 48
@@ -19,6 +20,15 @@ MainWindow::MainWindow(QWidget *parent) :
 {
 	ui->setupUi(this);
 	ui->lblVersion->setText(APPNAME " GIT rev.: <b>" GIT_REV "</b> at <u>" GIT_DATE "</u> on " GIT_BRANCH " [Build: " BUILD_TIMESTAMP " UTC]");
+
+	mBar = new QStatusBar(this);
+	layout()->addWidget(mBar);
+	mBar->setStyleSheet("QStatusBar {min-height: 50; /*background: brown;*/} QStatusBar::item { border: 3px solid gray; border-radius: 6px;}");
+	lblHostInfo = new QLabel("HostInfo", this); lblHostInfo->setMinimumWidth(150); lblHostInfo->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter); lblHostInfo->setObjectName("lblHostInfo");
+	mBar->addPermanentWidget(lblHostInfo);
+	btnConnectDisconnect = new QPushButton(tr("Connect", "btnConnectDisconnect"), this); btnConnectDisconnect->setMinimumWidth(100); btnConnectDisconnect->setFlat(true); btnConnectDisconnect->setCheckable(true);
+	mBar->addWidget(btnConnectDisconnect);
+	mBar->showMessage("Application started successfully!", 3000);
 
 	keyb = new KeysManager(this);
 	connect(keyb, &KeysManager::onKey, this, &MainWindow::onKeyboard);

@@ -4,6 +4,9 @@
 #include <QWidget>
 #include <QtWidgets/qpushbutton.h>
 
+class QLabel;
+class QStatusBar;
+
 namespace Ui {
 class MainWindow;
 }
@@ -25,6 +28,9 @@ public slots:
 
 private:
 	Ui::MainWindow *ui;
+	QLabel *lblHostInfo;
+	QPushButton *btnConnectDisconnect;
+	QStatusBar *mBar;
 	KbdWidget *kbdw = nullptr;
 	KeysManager *keyb = nullptr;
 	QList<QPushButton *> kbtns;
