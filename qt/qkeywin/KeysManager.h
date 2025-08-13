@@ -82,7 +82,7 @@ protected:
 
 private:
 	void processKeyEvent(QObject *obj, QEvent *event);
-	void processKeyPress(QObject *obj, uint key);
+	void processKeyPress(QObject *obj, uint key, bool autorepeat);
 	void processKeyRelease(QObject *obj, uint key);
 	void processAlphaKey(uint key);
 
@@ -131,6 +131,7 @@ private:
 
 	static  QMap<Qt::Key, uint> KeysCodeIdx;
 	static  QMap<Qt::Key, const char *> KeysCodeNames;
+	bool	keysPressed[KEY_MAX]= {false,};
 
 	static const unsigned NO = 10;
 	static const unsigned OK = 11;

@@ -118,7 +118,7 @@ bool KeysManager::eventFilter(QObject *obj, QEvent *event)
 			processKeyEvent(obj, event);
 			break;
 		default:
-			qDebug() << "[" << objectName() << "]: Event on" << obj->objectName() << ":" << event->type();
+			//qDebug() << "[" << objectName() << "]: Event on" << obj->objectName() << ":" << event->type();
 			break;
 	}
 	return QObject::eventFilter(obj, event);
@@ -128,24 +128,28 @@ void KeysManager::processKeyEvent(QObject *obj, QEvent *event)
 {
 	QKeyEvent *evk = dynamic_cast<QKeyEvent *>(event);
 	Q_ASSERT(evk);
-	qDebug() << "[" << objectName() << "]: KEY Event on" << obj->objectName() << ":" << event->type() << Qt::hex << evk->key() << Qt::dec << evk->nativeScanCode() << evk->nativeVirtualKey() << evk->text();
-	qDebug() << "KEY Event on" << obj->objectName() << ":" << event->type() << Qt::hex << evk->key() << KeysCodeNames.value(static_cast<Qt::Key>(evk->key()),"---") << evk->text();
+	//qDebug() << "[" << objectName() << "]: KEY Event on" << obj->objectName() << ":" << event->type() << Qt::hex << evk->key() << Qt::dec << evk->nativeScanCode() << evk->nativeVirtualKey() << evk->text();
+	//qDebug() << "KEY Event on" << obj->objectName() << ":" << event->type() << Qt::hex << evk->key() << KeysCodeNames.value(static_cast<Qt::Key>(evk->key()),"---") << evk->text() << evk->isAutoRepeat();
 	uint key = KeysCodeIdx.value(static_cast<Qt::Key>(evk->key()),KEY_UNKNOWN);
 	if( key < KEY_UNKNOWN ) {
-		event->type()==QEvent::KeyPress?processKeyPress(obj, key):processKeyRelease(obj, key);
+		event->type()==QEvent::KeyPress?processKeyPress(obj, key, evk->isAutoRepeat()):processKeyRelease(obj, key);
 	} else {
 		qWarning() << "KEY Unknown :" <<  event->type() << Qt::hex << evk->key() << evk->text();
 	}
 }
 //-------------------------------------------------------------------------
-void KeysManager::processKeyPress(QObject *obj, uint key)
+void KeysManager::processKeyPress(QObject *obj, uint key, bool autorepeat)
 {
+	killTimer(timerId);
+	timerId = startTimer(1000);
+	keysPressed[key] = true;
+
 	QAbstractSpinBox* b= qobject_cast<QAbstractSpinBox *>(editor);
-	if(editor) {
+	if(editor && key <= KEY_K5) {
 		if(key <= KEY_OK) {
 			processAlphaKey(key);
 		} else {
-			switch(key) {
+			if(!autorepeat) switch(key) {
 				case KEY_K1:
 					stopEdit(false);
 					break;
@@ -163,13 +167,16 @@ void KeysManager::processKeyPress(QObject *obj, uint key)
 			}
 		}
 	} else {
-		emitters[key]();
-		Q_EMIT onKey(key);
+		if(!autorepeat) {
+			emitters[key]();
+			Q_EMIT onKey(key);
+		}
 	}
 }
 //-------------------------------------------------------------------------
-void KeysManager::processKeyRelease(QObject *obj, uint key)
+void KeysManager::processKeyRelease(QObject *, uint key)
 {
+	keysPressed[key] = false;
 	if(editor && key < KEY_K1 ) return;
 	emitters_release[key]();
 	Q_EMIT onRelease(key);
@@ -177,9 +184,6 @@ void KeysManager::processKeyRelease(QObject *obj, uint key)
 //-------------------------------------------------------------------------
 void KeysManager::processAlphaKey(uint key)
 {
-	killTimer(timerId);
-	timerId = 0;
-
 	QString syms = sSymbols.at(key);
 
 	if(flDigits) {
@@ -188,10 +192,9 @@ void KeysManager::processAlphaKey(uint key)
 		ev.setCommitString(sym);
 		QCoreApplication::sendEvent(editor,&ev);
 		if(!label.isNull()) label->setText("");
+		currentAlphaKey = KEY_UNKNOWN;
 		return;
 	}
-
-	timerId = startTimer(1000);
 
 	if(key != currentAlphaKey) {
 		numAlphaSyms = syms.size();
@@ -214,6 +217,11 @@ void KeysManager::timerEvent(QTimerEvent *event)
 {
 	killTimer(timerId);
 	timerId = 0;
+
+	for(uint key=0; key<KEY_MAX; key++) {
+		if(keysPressed[key]) processKeyRelease(nullptr, key);
+	}
+
 	if(editor && currentAlphaKey <= KEY_9) {
 		QInputMethodEvent ev;
 		assert(currentSym < sSymbols.at(currentAlphaKey).size());
