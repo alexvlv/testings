@@ -40,6 +40,7 @@ KeysManager::KeysManager(QObject *parent)
 void KeysManager::setShift(bool fl) // [Slot]
 {
 	flShift = fl;
+	Q_EMIT onShift(flShift);
 }
 //-------------------------------------------------------------------------
 void KeysManager::doToggleShift() // [Slot]
@@ -68,7 +69,7 @@ void KeysManager::startEdit(QWidget * w) // [Slot]
 	}
 	if(!w) return;
 	setEditorReadOnly(w, false);
-	flShift = false;
+	setShift(false);
 	flDigits = w->property("digits").toBool();
 	editor = w;
 	if(!label.isNull())  label->setText("");
@@ -86,6 +87,7 @@ void KeysManager::setEditorReadOnly(QWidget *w, bool fl)
 //-------------------------------------------------------------------------
 void KeysManager::stopEdit(bool ok) // [Slot]
 {
+	setShift(false);
 	if(!editor) return;
 	Q_EMIT onEditDone(editor, ok);
 	Q_EMIT ok?onEditOk(editor):onEditCancel(editor);
