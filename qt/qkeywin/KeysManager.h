@@ -55,6 +55,7 @@ public slots:
 
 signals:
 	void onKey(uint);
+	void onRelease(uint);
 	void onStartEdit(QWidget *);
 
 	#define SIGNAL_NAME(X) onKey_##X()
@@ -65,6 +66,10 @@ signals:
 	SIGNAL_DECL(NO); SIGNAL_DECL(OK);
 	SIGNAL_DECL(K1); SIGNAL_DECL(K2); SIGNAL_DECL(K3);SIGNAL_DECL(K4); SIGNAL_DECL(K5);
 	SIGNAL_DECL(PTT); SIGNAL_DECL(CALL);
+
+	#define SIGNAL_RELEASE_NAME(X) onRelease_##X()
+	#define SIGNAL_RELEASE_DECL(X) void SIGNAL_RELEASE_NAME(X)
+	SIGNAL_RELEASE_DECL(PTT); SIGNAL_RELEASE_DECL(CALL);
 
 	void onEditDone(QWidget *, bool);
 	void onEditOk(QWidget *);
@@ -138,6 +143,7 @@ private:
 	static const unsigned CALL = 18;
 
 	#define EMIT_LAMBDA(X) [this]() { const uint idx=X; qDebug() << "KEY pressed:" << KeyNames[idx] << "[" << xstr(X) << "]" ; Q_EMIT SIGNAL_NAME(X);}
+	#define EMIT_RELEASE_LAMBDA(X) [this]() { const uint idx=X; qDebug() << "KEY released:" << KeyNames[idx] << "[" << xstr(X) << "]" ; Q_EMIT SIGNAL_NAME(X);}
 	using EmitFunc = std::function<void()>;
 	EmitFunc emitters[KEY_MAX] = {
 		EMIT_LAMBDA(0), EMIT_LAMBDA(1), EMIT_LAMBDA(2), EMIT_LAMBDA(3), EMIT_LAMBDA(4),
@@ -145,6 +151,14 @@ private:
 		EMIT_LAMBDA(NO), EMIT_LAMBDA(OK),
 		EMIT_LAMBDA(K1), EMIT_LAMBDA(K2), EMIT_LAMBDA(K3), EMIT_LAMBDA(K4), EMIT_LAMBDA(K5),
 		EMIT_LAMBDA(PTT), EMIT_LAMBDA(CALL),
+		[this]() { ; }
+	};
+	EmitFunc emitters_release[KEY_MAX] = {
+		EMIT_RELEASE_LAMBDA(0), EMIT_RELEASE_LAMBDA(1), EMIT_RELEASE_LAMBDA(2), EMIT_RELEASE_LAMBDA(3), EMIT_RELEASE_LAMBDA(4),
+		EMIT_RELEASE_LAMBDA(5), EMIT_RELEASE_LAMBDA(6), EMIT_RELEASE_LAMBDA(7), EMIT_RELEASE_LAMBDA(8), EMIT_RELEASE_LAMBDA(9),
+		EMIT_RELEASE_LAMBDA(NO), EMIT_RELEASE_LAMBDA(OK),
+		EMIT_RELEASE_LAMBDA(K1), EMIT_RELEASE_LAMBDA(K2), EMIT_RELEASE_LAMBDA(K3), EMIT_RELEASE_LAMBDA(K4), EMIT_RELEASE_LAMBDA(K5),
+		EMIT_RELEASE_LAMBDA(PTT), EMIT_RELEASE_LAMBDA(CALL),
 		[this]() { ; }
 	};
 

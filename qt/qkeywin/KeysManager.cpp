@@ -118,7 +118,7 @@ bool KeysManager::eventFilter(QObject *obj, QEvent *event)
 			processKeyEvent(obj, event);
 			break;
 		default:
-			//qDebug() << "[" << objectName() << "]: Event on" << obj->objectName() << ":" << event->type();
+			qDebug() << "[" << objectName() << "]: Event on" << obj->objectName() << ":" << event->type();
 			break;
 	}
 	return QObject::eventFilter(obj, event);
@@ -128,8 +128,8 @@ void KeysManager::processKeyEvent(QObject *obj, QEvent *event)
 {
 	QKeyEvent *evk = dynamic_cast<QKeyEvent *>(event);
 	Q_ASSERT(evk);
-	//qDebug() << "[" << objectName() << "]: KEY Event on" << obj->objectName() << ":" << event->type() << Qt::hex << evk->key() << Qt::dec << evk->nativeScanCode() << evk->nativeVirtualKey() << evk->text();
-	//qDebug() << "KEY Event on" << obj->objectName() << ":" << event->type() << Qt::hex << evk->key() << KeysCodeNames.value(static_cast<Qt::Key>(evk->key()),"---") << evk->text();
+	qDebug() << "[" << objectName() << "]: KEY Event on" << obj->objectName() << ":" << event->type() << Qt::hex << evk->key() << Qt::dec << evk->nativeScanCode() << evk->nativeVirtualKey() << evk->text();
+	qDebug() << "KEY Event on" << obj->objectName() << ":" << event->type() << Qt::hex << evk->key() << KeysCodeNames.value(static_cast<Qt::Key>(evk->key()),"---") << evk->text();
 	uint key = KeysCodeIdx.value(static_cast<Qt::Key>(evk->key()),KEY_UNKNOWN);
 	if( key < KEY_UNKNOWN ) {
 		event->type()==QEvent::KeyPress?processKeyPress(obj, key):processKeyRelease(obj, key);
@@ -170,7 +170,9 @@ void KeysManager::processKeyPress(QObject *obj, uint key)
 //-------------------------------------------------------------------------
 void KeysManager::processKeyRelease(QObject *obj, uint key)
 {
-	if( key > KEY_9 || currentAlphaKey > KEY_9 ) return;
+	if(editor && key < KEY_K1 ) return;
+	emitters_release[key]();
+	Q_EMIT onRelease(key);
 }
 //-------------------------------------------------------------------------
 void KeysManager::processAlphaKey(uint key)
