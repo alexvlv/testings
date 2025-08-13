@@ -38,6 +38,9 @@ public:
 		KEY_K4,
 		KEY_K5,
 
+		KEY_PTT,
+		KEY_CALL,
+
 		KEY_UNKNOWN,
 		KEY_MAX
 	};
@@ -61,6 +64,7 @@ signals:
 	SIGNAL_DECL(5); SIGNAL_DECL(6); SIGNAL_DECL(7); SIGNAL_DECL(8);SIGNAL_DECL(9);
 	SIGNAL_DECL(NO); SIGNAL_DECL(OK);
 	SIGNAL_DECL(K1); SIGNAL_DECL(K2); SIGNAL_DECL(K3);SIGNAL_DECL(K4); SIGNAL_DECL(K5);
+	SIGNAL_DECL(PTT); SIGNAL_DECL(CALL);
 
 	void onEditDone(QWidget *, bool);
 	void onEditOk(QWidget *);
@@ -78,7 +82,7 @@ private:
 	void processAlphaKey(uint key);
 
 	template<typename T>
-	bool setReadOnly(QWidget *w, bool fl) { T* p= qobject_cast<T *>(w); if(p) p->setReadOnly(fl); return (p!=nullptr);};
+	bool setReadOnly(QWidget *w, bool fl) { T* p= qobject_cast<T *>(w); if(p) p->setReadOnly(fl); return (p!=nullptr);}
 
 	void setEditorReadOnly(QWidget *w, bool fl);
 
@@ -105,6 +109,10 @@ private:
 		Qt::Key_F3,   // in edit mode: OK
 		Qt::Key_F4,
 		Qt::Key_F5,
+
+		Qt::Key_PageUp,
+		Qt::Key_PageDown,
+
 		static_cast<Qt::Key>(0)
 	};
 
@@ -112,6 +120,7 @@ private:
 		"#0","#1","#2","#3","#4","#5","#6","#7","#8","#9",
 		"NO","OK",
 		"K1","K2","K3","K4","K5",
+		"PTT","CALL",
 		"UNKNOWN"
 	};
 
@@ -125,6 +134,8 @@ private:
 	static const unsigned K3 = 14;
 	static const unsigned K4 = 15;
 	static const unsigned K5 = 16;
+	static const unsigned PTT = 17;
+	static const unsigned CALL = 18;
 
 	#define EMIT_LAMBDA(X) [this]() { const uint idx=X; qDebug() << "KEY pressed:" << KeyNames[idx] << "[" << xstr(X) << "]" ; Q_EMIT SIGNAL_NAME(X);}
 	using EmitFunc = std::function<void()>;
@@ -133,6 +144,7 @@ private:
 		EMIT_LAMBDA(5), EMIT_LAMBDA(6), EMIT_LAMBDA(7), EMIT_LAMBDA(8), EMIT_LAMBDA(9),
 		EMIT_LAMBDA(NO), EMIT_LAMBDA(OK),
 		EMIT_LAMBDA(K1), EMIT_LAMBDA(K2), EMIT_LAMBDA(K3), EMIT_LAMBDA(K4), EMIT_LAMBDA(K5),
+		EMIT_LAMBDA(PTT), EMIT_LAMBDA(CALL),
 		[this]() { ; }
 	};
 
