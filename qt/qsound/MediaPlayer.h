@@ -10,12 +10,12 @@ class MediaPlayer : public QObject
 {
     Q_OBJECT
 public:
-    explicit MediaPlayer(QObject *parent = nullptr);
+	explicit MediaPlayer(QString fname, QObject *parent = nullptr);
 
 signals:
 
 private:
-    static const QString Fname;
+	//static const QString Fname;
     QMediaPlayer *player;
 
 private slots:

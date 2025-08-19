@@ -11,13 +11,13 @@ class PlayWav : public QObject
 {
     Q_OBJECT
 public:
-    explicit PlayWav(QObject *parent = nullptr);
+	explicit PlayWav(QString fname, QObject *parent = nullptr);
 
 signals:
 
 
 private:
-    static const QString Fname;
+	//static const QString Fname;
     QSoundEffect *effect;
 
 private slots:
