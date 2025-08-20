@@ -23,6 +23,7 @@ MediaPlayer::MediaPlayer(QString fname, QObject *parent)
 	player->setSource(QUrl::fromLocalFile(fname));
     player->setLoops(QMediaPlayer::Infinite);
     player->play();
+	qDebug() << __PRETTY_FUNCTION__ << "START!";
 }
 //-------------------------------------------------------------------------
 void MediaPlayer::onMediaStatusChanged(QMediaPlayer::MediaStatus status)

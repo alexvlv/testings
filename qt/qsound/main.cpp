@@ -3,6 +3,7 @@
 
 #include "PlayWav.h"
 #include "MediaPlayer.h"
+#include "PlayQAudioSink.h"
 
 #include <QAudioDevice>
 #include <QMediaDevices>
@@ -26,6 +27,11 @@ static void playQMediaPlayer(const QString &fname)
 	static  MediaPlayer play(fname);
 }
 //-------------------------------------------------------------------------
+static void playQAudioSink(const QString &fname)
+{
+	static  PlayQAudioSink play(fname);
+}
+//-------------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
 	qInfo()<< APPNAME << Version;
@@ -42,7 +48,7 @@ int main(int argc, char *argv[])
 	QCommandLineOption inFileOption({"f", "file"}, "input .wav file","infile");
 	parser.addOption(inFileOption);
 
-	QCommandLineOption engineOption({"e", "engine"}, "Sound engine used: \n1 - QSoundEffect \n2 - QMediaPlayer","engine");
+	QCommandLineOption engineOption({"e", "engine"}, "Sound engine used: \n1 - QSoundEffect \n2 - QMediaPlayer \n3 - QAudioSink","engine");
 	parser.addOption(engineOption);
 
 	parser.process(a);
@@ -61,6 +67,7 @@ int main(int argc, char *argv[])
 	if(parser.isSet(engineOption)) {
 		idxEngine = parser.value(engineOption).toUInt();
 	}
+	qDebug() << "Sound engine used:" << idxEngine;
 
 	switch (idxEngine) {
 	case 1:
@@ -68,6 +75,9 @@ int main(int argc, char *argv[])
 		break;
 	case 2:
 		playQMediaPlayer(qsInFileName);
+		break;
+	case 3:
+		playQAudioSink(qsInFileName);
 		break;
 	default:
 		qCritical() << "No play engine selected, exiting";

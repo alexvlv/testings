@@ -23,6 +23,7 @@ PlayWav::PlayWav(QString fname, QObject *parent)
     qDebug() << effect->source();
     qDebug() << effect->status();
     qInfo()<< "Start playing...";
+	qDebug() << __PRETTY_FUNCTION__ << "START!";
 }
 //-------------------------------------------------------------------------
 void PlayWav::onLoadedChanged()
