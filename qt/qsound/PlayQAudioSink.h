@@ -16,7 +16,7 @@ public:
 signals:
 
 private slots:
-void handleStateChanged(QAudio::State state);
+	void handleStateChanged(QAudio::State state);
 
 private:
 	QFile sourceFile;   // class member.

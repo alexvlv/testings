@@ -10,7 +10,7 @@ class AudioCapture : public QObject
 {
 	Q_OBJECT
 public:
-	explicit AudioCapture(QObject *parent = nullptr);
+	explicit AudioCapture(QString fname, QObject *parent = nullptr);
 
 signals:
 
