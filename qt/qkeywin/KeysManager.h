@@ -8,11 +8,13 @@
 #include <QtWidgets/qlabel.h>
 #include <functional>
 
+class QAbstractButton;
+
 class KeysManager : public QObject
 {
 	Q_OBJECT
 public:
-	explicit KeysManager(QObject *parent = nullptr);
+	static KeysManager& get() { static KeysManager k; return k; }
 	void setLabel(QLabel *);
 	bool isDigits() const { return flDigits; }
 	bool isSpinBox() const;
@@ -44,6 +46,8 @@ public:
 		KEY_UNKNOWN,
 		KEY_MAX
 	};
+
+	QMap<uint, QAbstractButton *> buttons;
 
 public slots:
 	void startEdit(QWidget * = nullptr);
@@ -81,9 +85,14 @@ protected:
 	void timerEvent(QTimerEvent *event) override;
 
 private:
+	explicit KeysManager(QObject *parent = nullptr);
+	// Delete copy constructor and assignment operator to prevent copying
+	KeysManager(const KeysManager&) = delete;
+	KeysManager& operator=(const KeysManager&) = delete;
+
 	void processKeyEvent(QObject *obj, QEvent *event);
 	void processKeyPress(QObject *obj, uint key, bool autorepeat);
-	void processKeyRelease(QObject *obj, uint key);
+	void processKeyRelease(QObject *obj, uint key, bool autorepeat);
 	void processAlphaKey(uint key);
 
 	template<typename T>
@@ -144,7 +153,7 @@ private:
 	static const unsigned CALL = 18;
 
 	#define EMIT_LAMBDA(X) [this]() { const uint idx=X; qDebug() << "KEY pressed:" << KeyNames[idx] << "[" << xstr(X) << "]" ; Q_EMIT SIGNAL_NAME(X);}
-	#define EMIT_RELEASE_LAMBDA(X) [this]() { const uint idx=X; qDebug() << "KEY released:" << KeyNames[idx] << "[" << xstr(X) << "]" ; Q_EMIT SIGNAL_NAME(X);}
+	#define EMIT_RELEASE_LAMBDA(X) [this]() { const uint idx=X; qDebug() << "KEY released:" << KeyNames[idx] << "[" << xstr(X) << "]" ; Q_EMIT SIGNAL_RELEASE_NAME(X);}
 	using EmitFunc = std::function<void()>;
 	EmitFunc emitters[KEY_MAX] = {
 		EMIT_LAMBDA(0), EMIT_LAMBDA(1), EMIT_LAMBDA(2), EMIT_LAMBDA(3), EMIT_LAMBDA(4),
@@ -155,10 +164,10 @@ private:
 		[this]() { ; }
 	};
 	EmitFunc emitters_release[KEY_MAX] = {
-		EMIT_RELEASE_LAMBDA(0), EMIT_RELEASE_LAMBDA(1), EMIT_RELEASE_LAMBDA(2), EMIT_RELEASE_LAMBDA(3), EMIT_RELEASE_LAMBDA(4),
-		EMIT_RELEASE_LAMBDA(5), EMIT_RELEASE_LAMBDA(6), EMIT_RELEASE_LAMBDA(7), EMIT_RELEASE_LAMBDA(8), EMIT_RELEASE_LAMBDA(9),
-		EMIT_RELEASE_LAMBDA(NO), EMIT_RELEASE_LAMBDA(OK),
-		EMIT_RELEASE_LAMBDA(K1), EMIT_RELEASE_LAMBDA(K2), EMIT_RELEASE_LAMBDA(K3), EMIT_RELEASE_LAMBDA(K4), EMIT_RELEASE_LAMBDA(K5),
+		nullptr, nullptr, nullptr, nullptr, nullptr,
+		nullptr, nullptr, nullptr, nullptr, nullptr,
+		nullptr, nullptr,
+		nullptr, nullptr, nullptr, nullptr, nullptr,
 		EMIT_RELEASE_LAMBDA(PTT), EMIT_RELEASE_LAMBDA(CALL),
 		[this]() { ; }
 	};

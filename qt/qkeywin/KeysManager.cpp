@@ -8,7 +8,8 @@
 #include <QtWidgets/qtextedit.h>
 #include <QtWidgets/qabstractspinbox.h>
 
-
+#include <QAbstractButton>
+ #include <functional>
 //-------------------------------------------------------------------------
 const QStringList  KeysManager::sSymbols = {
 	QString::fromUtf8("0 "),
@@ -134,7 +135,9 @@ void KeysManager::processKeyEvent(QObject *obj, QEvent *event)
 	//qDebug() << "KEY Event on" << obj->objectName() << ":" << event->type() << Qt::hex << evk->key() << KeysCodeNames.value(static_cast<Qt::Key>(evk->key()),"---") << evk->text() << evk->isAutoRepeat();
 	uint key = KeysCodeIdx.value(static_cast<Qt::Key>(evk->key()),KEY_UNKNOWN);
 	if( key < KEY_UNKNOWN ) {
-		event->type()==QEvent::KeyPress?processKeyPress(obj, key, evk->isAutoRepeat()):processKeyRelease(obj, key);
+		using ProcessFunc = std::function<void(QObject *, uint, bool)>;
+		ProcessFunc process = std::bind(event->type()==QEvent::KeyPress?&KeysManager::processKeyPress:&KeysManager::processKeyRelease, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+		process(obj, key, evk->isAutoRepeat());
 	} else {
 		qWarning() << "KEY Unknown :" <<  event->type() << Qt::hex << evk->key() << evk->text();
 	}
@@ -145,6 +148,8 @@ void KeysManager::processKeyPress(QObject *obj, uint key, bool autorepeat)
 	killTimer(timerId);
 	timerId = startTimer(1000);
 	keysPressed[key] = true;
+
+	//qDebug() << __PRETTY_FUNCTION__ << obj << key << autorepeat;
 
 	QAbstractSpinBox* b= qobject_cast<QAbstractSpinBox *>(editor);
 	if(editor && key <= KEY_K5) {
@@ -170,18 +175,26 @@ void KeysManager::processKeyPress(QObject *obj, uint key, bool autorepeat)
 		}
 	} else {
 		if(!autorepeat) {
-			emitters[key]();
-			Q_EMIT onKey(key);
+			QAbstractButton *btn = buttons.value(key, nullptr);
+			if(btn && btn->isEnabled() && btn->isVisible()) {
+				btn->animateClick();
+			} else {
+				emitters[key]();
+				Q_EMIT onKey(key);
+			}
 		}
 	}
 }
 //-------------------------------------------------------------------------
-void KeysManager::processKeyRelease(QObject *, uint key)
+void KeysManager::processKeyRelease(QObject *obj, uint key, bool autorepeat)
 {
+	//qDebug() << __PRETTY_FUNCTION__ << obj << key << autorepeat;
+	if(autorepeat) return;
 	keysPressed[key] = false;
 	if(editor && key < KEY_K1 ) return;
-	emitters_release[key]();
+	if(emitters_release[key]) emitters_release[key]();
 	Q_EMIT onRelease(key);
+
 }
 //-------------------------------------------------------------------------
 void KeysManager::processAlphaKey(uint key)
@@ -221,7 +234,7 @@ void KeysManager::timerEvent(QTimerEvent *event)
 	timerId = 0;
 
 	for(uint key=0; key<KEY_MAX; key++) {
-		if(keysPressed[key]) processKeyRelease(nullptr, key);
+		if(keysPressed[key]) processKeyRelease(nullptr, key, false);
 	}
 
 	if(editor && currentAlphaKey <= KEY_9) {
@@ -240,5 +253,6 @@ void KeysManager::timerEvent(QTimerEvent *event)
 /*
 https://isocpp.org/wiki/faq/pointers-to-members
 https://stackoverflow.com/questions/28746744/passing-capturing-lambda-as-function-pointer/28746827
+https://stackoverflow.com/questions/7582546/using-generic-stdfunction-objects-with-member-functions-in-one-class
 */
 //-------------------------------------------------------------------------

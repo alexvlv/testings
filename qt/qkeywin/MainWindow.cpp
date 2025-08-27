@@ -30,7 +30,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	mBar->addWidget(btnConnectDisconnect);
 	mBar->showMessage("Application started successfully!", 3000);
 
-	keyb = new KeysManager(this);
+	keyb = &KeysManager::get();
 	connect(keyb, &KeysManager::onKey, this, &MainWindow::onKeyboard);
 	installEventFilter(keyb);
 	kbdw = new KbdWidget(keyb, this);
