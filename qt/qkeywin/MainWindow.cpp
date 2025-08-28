@@ -5,8 +5,11 @@
 #include "KbdWidget.h"
 #include "KeysManager.h"
 
+#include "KeyDialog.h"
+
 #include <QLayout>
 #include <QStatusBar>
+#include <QTimer>
 
 #ifdef Q_PROCESSOR_ARM
 #define FONT_SIZE 48
@@ -55,6 +58,15 @@ MainWindow::MainWindow(QWidget *parent) :
 	ui->spinBox->setStyleSheet("QSpinBox::down-button{ width: 24 } QSpinBox::up-button{ width: 24 } QSpinBox { font-size: 16px }");
 	ui->checkBox->setStyleSheet("QCheckBox::indicator { width: 24px; height: 24px;} QCheckBox { font-size: 16px }");
 #endif
+	//KeyDialog *k = new KeyDialog();
+	//k->setWindowState(Qt::WindowFullScreen);
+	//k->setAttribute(Qt::WA_TranslucentBackground);
+	//k->setStyleSheet("background:transparent;");
+	//QTimer::singleShot(100,k, &QDialog::showFullScreen );
+	//k->open();
+	//setAttribute(Qt::WA_TranslucentBackground);
+	//setStyleSheet("background:transparent;");
+	//setAttribute(Qt::WA_NoSystemBackground, true);
 }
 //-------------------------------------------------------------------------
 MainWindow::~MainWindow()
