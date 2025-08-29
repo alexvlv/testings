@@ -32,12 +32,12 @@ MainWindow::MainWindow(QWidget *parent) :
 	btnConnectDisconnect = new QPushButton(tr("Connect", "btnConnectDisconnect"), this); btnConnectDisconnect->setMinimumWidth(100); btnConnectDisconnect->setFlat(true); btnConnectDisconnect->setCheckable(true);
 	mBar->addWidget(btnConnectDisconnect);
 	mBar->showMessage("Application started successfully!", 3000);
-
 	keyb = &KeysManager::get();
 	connect(keyb, &KeysManager::onKey, this, &MainWindow::onKeyboard);
 	installEventFilter(keyb);
 	kbdw = new KbdWidget(keyb, this);
-	layout()->addWidget(kbdw);
+	//layout()->addWidget(kbdw);
+	mBar->addPermanentWidget(kbdw);
 
 	kbtns = findChildren<QPushButton *>(QRegularExpression("btn_N"));
 	connect(kbdw, &KbdWidget::onFkey, this, &MainWindow::onKeyButtonClicked);
