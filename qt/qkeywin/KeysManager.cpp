@@ -91,7 +91,7 @@ void KeysManager::stopEdit(bool ok) // [Slot]
 	setShift(false);
 	if(!editor) return;
 	Q_EMIT onEditDone(editor, ok);
-	Q_EMIT ok?onEditOk(editor):onEditCancel(editor);
+	if(ok) { Q_EMIT onEditOk(editor);} else { Q_EMIT onEditCancel(editor);}
 	setEditorReadOnly(editor, true);
 	qDebug() << __PRETTY_FUNCTION__ << editor << ok;
 	editor = nullptr;
