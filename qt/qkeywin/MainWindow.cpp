@@ -58,7 +58,11 @@ MainWindow::MainWindow(QWidget *parent) :
 	ui->spinBox->setStyleSheet("QSpinBox::down-button{ width: 24 } QSpinBox::up-button{ width: 24 } QSpinBox { font-size: 16px }");
 	ui->checkBox->setStyleSheet("QCheckBox::indicator { width: 24px; height: 24px;} QCheckBox { font-size: 16px }");
 #endif
-	//KeyDialog *k = new KeyDialog();
+	{
+		KeyDialog *k = new KeyDialog();
+		k->installEventFilter(keyb);
+		connect(ui->pushButton,  &QPushButton::clicked, k,&QDialog::exec);
+	}
 	//k->setWindowState(Qt::WindowFullScreen);
 	//k->setAttribute(Qt::WA_TranslucentBackground);
 	//k->setStyleSheet("background:transparent;");
@@ -94,6 +98,7 @@ void MainWindow::onKeyButtonClicked(int i) // [slot]
 		break;
 	case KeysManager::KEY_K5:
 		ui->checkBox->setChecked(!ui->checkBox->isChecked());
+		ui->pushButton->animateClick();
 		break;
 	}
 }
