@@ -60,7 +60,10 @@ MainWindow::MainWindow(QWidget *parent) :
 #endif
 	{
 		KeyDialog *k = new KeyDialog();
-		k->installEventFilter(keyb);
+		connect(k, &QDialog::finished, [k](int r){ qDebug() << k << "result:" << r;});
+		KeysManager &kmd = KeysManager::get(k);
+		connect(&kmd, &KeysManager::onKey_K1, k, &QDialog::accept);
+		connect(&kmd, &KeysManager::onKey_K2, k, &QDialog::reject);
 		connect(ui->pushButton,  &QPushButton::clicked, k,&QDialog::exec);
 	}
 	//k->setWindowState(Qt::WindowFullScreen);
@@ -94,10 +97,10 @@ void MainWindow::onKeyButtonClicked(int i) // [slot]
 		keyb->startEdit(ui->lineEditDigits);
 		break;
 	case KeysManager::KEY_K4:
+		ui->checkBox->setChecked(!ui->checkBox->isChecked());
 		keyb->startEdit(ui->spinBox);
 		break;
 	case KeysManager::KEY_K5:
-		ui->checkBox->setChecked(!ui->checkBox->isChecked());
 		ui->pushButton->animateClick();
 		break;
 	}

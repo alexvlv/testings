@@ -51,10 +51,15 @@ KeysManager& KeysManager::get(QWidget *w)
 KeysManager::KeysManager(QObject *parent)
 	: QObject{parent}
 {
-	if(KeysCodeIdx.empty()) for(int i = 0; i<KEY_MAX; i++ ) {
-		KeysCodeIdx.insert(KeyCodes[i],i);
-		KeysCodeNames.insert(KeyCodes[i],KeyNames[i]);
+
+	if(KeysCodeIdx.empty()) {
+		qDebug() << "KeysManager: first instance created";
+		for(int i = 0; i<KEY_MAX; i++ ) {
+			KeysCodeIdx.insert(KeyCodes[i],i);
+			KeysCodeNames.insert(KeyCodes[i],KeyNames[i]);
+		}
 	}
+	qDebug() << "KeysManager: created for " << parent;
 	parent->installEventFilter(this);
 }
 //-------------------------------------------------------------------------
