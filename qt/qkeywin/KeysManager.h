@@ -47,7 +47,16 @@ public:
 		KEY_MAX
 	};
 
-	QMap<uint, QAbstractButton *> buttons;
+	void setSlaveButton(uint idx, QAbstractButton *btn);
+
+	static const uint NUM_EDIT_BUTTONS = 5;
+	void setEditButtons(QAbstractButton *ok, QAbstractButton *cancel = nullptr,
+					QAbstractButton* shift = nullptr, QAbstractButton* up = nullptr,
+					QAbstractButton* down = nullptr);
+	void resetEditButtons();
+	void updateEditButtons(QAbstractButton *ok, QAbstractButton *cancel = nullptr,
+					QAbstractButton* shift = nullptr, QAbstractButton* up = nullptr,
+					QAbstractButton* down = nullptr);
 
 public slots:
 	void startEdit(QWidget * = nullptr);
@@ -183,4 +192,17 @@ private:
 	uint currentSym = 0;
 	int  timerId = 0;
 	bool flDigits = false;
+
+	union EditButtons_t {
+		struct {
+			QAbstractButton* ok;
+			QAbstractButton* cancel;
+			QAbstractButton* shift;
+			QAbstractButton* up;
+			QAbstractButton* down;
+		};
+		QAbstractButton* array[NUM_EDIT_BUTTONS];
+	} editButtons = {nullptr, };
+
+	QMap<uint, QAbstractButton *> slaveButtons; // ToDo: create setter/getter to using possibility
 };

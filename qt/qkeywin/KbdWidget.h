@@ -23,10 +23,6 @@ public:
 public slots:
 	void onStartEdit(QWidget * = nullptr);
 	void onEditDone(QWidget *, bool);
-	void onKeyboard(int);
-
-signals:
-	void onFkey(int);
 
 private:
 	Ui::KbdWidget *ui;

@@ -6,6 +6,7 @@
 #include <QtWidgets/qapplication.h>
 #include <QtWidgets/qlineedit.h>
 #include <QtWidgets/qtextedit.h>
+#include <QtWidgets/qplaintextedit.h>
 #include <QtWidgets/qabstractspinbox.h>
 
 #include <QAbstractButton>
@@ -36,6 +37,40 @@ KeysManager::KeysManager(QObject *parent)
 		KeysCodeIdx.insert(KeyCodes[i],i);
 		KeysCodeNames.insert(KeyCodes[i],KeyNames[i]);
 	}
+}
+//-------------------------------------------------------------------------
+void KeysManager::setSlaveButton(uint idx, QAbstractButton *btn)
+{
+	assert(idx < KEY_PTT);
+	slaveButtons[idx] = btn;
+}
+//-------------------------------------------------------------------------
+void KeysManager::setEditButtons(QAbstractButton *ok, QAbstractButton *cancel,
+	QAbstractButton* shift, QAbstractButton* up, QAbstractButton* down)
+{
+	resetEditButtons();
+	//qDebug() << __PRETTY_FUNCTION__ << "ok:" << ok << (ok?ok->text():"");
+	//qDebug() << __PRETTY_FUNCTION__ << "cancel:" << cancel << (cancel?cancel->text():"");
+	if(ok) { editButtons.ok = ok; connect(editButtons.ok, &QAbstractButton::clicked, this, &KeysManager::stopEditOK);}
+	if(cancel) { editButtons.cancel = cancel; connect(editButtons.cancel, &QAbstractButton::clicked, this, &KeysManager::stopEditCancel);}
+	if(shift) {
+		editButtons.shift = shift; connect(editButtons.shift, &QAbstractButton::toggled, this, &KeysManager::setShift);
+		connect(this, &KeysManager::onShift, editButtons.shift, &QAbstractButton::setChecked);
+	}
+	if(up) { editButtons.up = up; }
+	if(down) { editButtons.down = down; }
+
+	for (uint i = 0; i < NUM_EDIT_BUTTONS; i++) {
+		if(editButtons.array[i]) editButtons.array[i]->setVisible(false);
+	};
+}
+//-------------------------------------------------------------------------
+void KeysManager::resetEditButtons()
+{
+	for (uint i = 0; i < NUM_EDIT_BUTTONS; i++) {
+		if(editButtons.array[i]) disconnect(editButtons.array[i], nullptr, this, nullptr);
+	};
+	memset(&editButtons, 0, sizeof(editButtons));
 }
 //-------------------------------------------------------------------------
 void KeysManager::setShift(bool fl) // [Slot]
@@ -69,41 +104,70 @@ void KeysManager::startEdit(QWidget * w) // [Slot]
 		w = QApplication::focusWidget();
 	}
 	if(!w) return;
+	if(editButtons.ok) editButtons.ok->setVisible(true);
+	if(editButtons.cancel) editButtons.cancel->setVisible(true);
 	setEditorReadOnly(w, false);
 	setShift(false);
 	flDigits = w->property("digits").toBool();
 	editor = w;
 	if(!label.isNull())  label->setText("");
-	qDebug() << __PRETTY_FUNCTION__ << editor << flDigits;
+	if(editButtons.shift) editButtons.shift->setVisible(!flDigits);
+	//if(editButtons.shift) editButtons.shift->show();
+	QAbstractSpinBox *spb = qobject_cast<QAbstractSpinBox *>(editor);
+	if(editButtons.up) {
+		editButtons.up->setVisible(spb != nullptr);
+		if(spb) connect(editButtons.up, &QAbstractButton::clicked, spb, &QAbstractSpinBox::stepUp);
+	}
+	if(editButtons.down) {
+		editButtons.down->setVisible(spb != nullptr);
+		if(spb) connect(editButtons.down, &QAbstractButton::clicked, spb, &QAbstractSpinBox::stepDown);
+	}
+	qDebug() << __PRETTY_FUNCTION__ << editor << "digits only:" << flDigits;
 	Q_EMIT onStartEdit(editor);
-
 }
 //-------------------------------------------------------------------------
 void KeysManager::setEditorReadOnly(QWidget *w, bool fl)
 {
 	if(setReadOnly<QLineEdit>(w,fl)) return;
 	if(setReadOnly<QTextEdit>(w,fl)) return;
+	if(setReadOnly<QPlainTextEdit>(w,fl)) return;
 	if(setReadOnly<QAbstractSpinBox>(w,fl)) return;
 }
 //-------------------------------------------------------------------------
 void KeysManager::stopEdit(bool ok) // [Slot]
 {
 	setShift(false);
+	if(editButtons.ok) editButtons.ok->setVisible(false);
+	if(editButtons.cancel) editButtons.cancel->setVisible(false);
+	if(editButtons.shift) editButtons.shift->setVisible(false);
 	if(!editor) return;
-	Q_EMIT onEditDone(editor, ok);
+	qDebug() << __PRETTY_FUNCTION__ << sender() << editor << "result:" <<ok;
+	QAbstractSpinBox* spb = qobject_cast<QAbstractSpinBox *>(editor);
+	if(spb) {
+		if(editButtons.up) {
+			editButtons.up->setVisible(false);
+			disconnect(editButtons.up, &QAbstractButton::clicked, spb, &QAbstractSpinBox::stepUp);
+		}
+		if(editButtons.down) {
+			editButtons.down->setVisible(false);
+			disconnect(editButtons.down, &QAbstractButton::clicked, spb, &QAbstractSpinBox::stepDown);
+		}
+	}
 	if(ok) { Q_EMIT onEditOk(editor);} else { Q_EMIT onEditCancel(editor);}
+	Q_EMIT onEditDone(editor, ok);
 	setEditorReadOnly(editor, true);
-	qDebug() << __PRETTY_FUNCTION__ << editor << ok;
 	editor = nullptr;
 }
 //-------------------------------------------------------------------------
 void KeysManager::stopEditOK() // [Slot]
 {
+	//qDebug() << __PRETTY_FUNCTION__ << sender();
 	stopEdit(true);
 }
 //-------------------------------------------------------------------------
 void KeysManager::stopEditCancel() // [Slot]
 {
+	//qDebug() << __PRETTY_FUNCTION__ << sender();
 	stopEdit(false);
 }
 //-------------------------------------------------------------------------
@@ -158,10 +222,10 @@ void KeysManager::processKeyPress(QObject *obj, uint key, bool autorepeat)
 		} else {
 			if(!autorepeat) switch(key) {
 				case KEY_K1:
-					stopEdit(false);
+					stopEdit(true);
 					break;
 				case KEY_K2:
-					stopEdit(true);
+					stopEdit(false);
 					break;
 				case KEY_K3:
 					//if(b) b->clear();
@@ -175,7 +239,7 @@ void KeysManager::processKeyPress(QObject *obj, uint key, bool autorepeat)
 		}
 	} else {
 		if(!autorepeat) {
-			QAbstractButton *btn = buttons.value(key, nullptr);
+			QAbstractButton *btn = slaveButtons.value(key, nullptr);
 			if(btn && btn->isEnabled() && btn->isVisible()) {
 				btn->animateClick();
 			} else {

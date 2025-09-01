@@ -23,7 +23,6 @@ public:
 	~MainWindow();
 
 public slots:
-	void onKeyboard(int);
 	void onKeyButtonClicked(int);
 
 private:

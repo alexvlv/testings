@@ -34,13 +34,13 @@ MainWindow::MainWindow(QWidget *parent) :
 	mBar->showMessage("Application started successfully!", 3000);
 
 	keyb = &KeysManager::get();
-	connect(keyb, &KeysManager::onKey, this, &MainWindow::onKeyboard);
+	connect(keyb, &KeysManager::onKey, this, &MainWindow::onKeyButtonClicked);
 	installEventFilter(keyb);
 	kbdw = new KbdWidget(keyb, this);
 	layout()->addWidget(kbdw);
 
 	kbtns = findChildren<QPushButton *>(QRegularExpression("btn_N"));
-	connect(kbdw, &KbdWidget::onFkey, this, &MainWindow::onKeyButtonClicked);
+	//connect(kbdw, &KbdWidget::onFkey, this, &MainWindow::onKeyButtonClicked);
 	struct {
 		bool operator()(const QPushButton *a, const QPushButton *b) const { return a->objectName() < b->objectName(); }
 	} objectNameSort;
@@ -48,8 +48,9 @@ MainWindow::MainWindow(QWidget *parent) :
 	//std::sort(kbtns.begin(),kbtns.end(),[](const QObject *a, const QObject *b) { return a->objectName() < b->objectName();});
 	//qDebug()<< __PRETTY_FUNCTION__ << kbtns;
 	for (int i=0; i<kbtns.size();i++) {
-		const QPushButton *b = kbtns[i];
+		QPushButton *b = kbtns[i];
 		connect(b, &QPushButton::clicked, [this, i, b ]() { qDebug() << "#-Button clicked:" << i << b; });
+		KeysManager::get().setSlaveButton(i,b);
 	}
 	connect(ui->pushButton,  &QPushButton::clicked, [this](bool ok){ qDebug() << "Button clicked:" << ok; } );
 	connect(ui->checkBox,  &QPushButton::toggled, [this](bool ok){ qDebug() << "checkBox clicked:" << ok << sender(); } );
@@ -99,25 +100,6 @@ void MainWindow::onKeyButtonClicked(int i) // [slot]
 	case KeysManager::KEY_K5:
 		ui->checkBox->setChecked(!ui->checkBox->isChecked());
 		ui->pushButton->animateClick();
-		break;
-	}
-}
-//-------------------------------------------------------------------------
-void MainWindow::onKeyboard(int i) // [slot]
-{
-	//qDebug()<< __PRETTY_FUNCTION__ << i << sender();
-	switch (i) {
-	case KeysManager::KEY_K1:
-	case KeysManager::KEY_K2:
-	case KeysManager::KEY_K3:
-	case KeysManager::KEY_K4:
-	case KeysManager::KEY_K5:
-		//onKeyButtonClicked(i);
-		break;
-	default:
-		if(i<=KeysManager::KEY_9) {
-			kbtns[i]->animateClick();
-		}
 		break;
 	}
 }
