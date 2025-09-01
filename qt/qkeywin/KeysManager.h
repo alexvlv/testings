@@ -7,6 +7,7 @@
 #include <QDebug>
 #include <QtWidgets/qlabel.h>
 #include <functional>
+#include <set>
 
 class QAbstractButton;
 
@@ -14,7 +15,7 @@ class KeysManager : public QObject
 {
 	Q_OBJECT
 public:
-	static KeysManager& get() { static KeysManager k; return k; }
+	static KeysManager& get(QWidget *w);
 	void setLabel(QLabel *);
 	bool isDigits() const { return flDigits; }
 	bool isSpinBox() const;
@@ -205,4 +206,6 @@ private:
 	} editButtons = {nullptr, };
 
 	QMap<uint, QAbstractButton *> slaveButtons; // ToDo: create setter/getter to using possibility
+
+	static QMap<QPointer<QWidget>, KeysManager *> watched;
 };

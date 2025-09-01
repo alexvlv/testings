@@ -10,7 +10,8 @@
 #include <QtWidgets/qabstractspinbox.h>
 
 #include <QAbstractButton>
- #include <functional>
+#include <functional>
+
 //-------------------------------------------------------------------------
 const QStringList  KeysManager::sSymbols = {
 	QString::fromUtf8("0 "),
@@ -29,6 +30,23 @@ const QStringList  KeysManager::sSymbols = {
 //-------------------------------------------------------------------------
 QMap<Qt::Key, uint> KeysManager::KeysCodeIdx;
 QMap<Qt::Key, const char *> KeysManager::KeysCodeNames;
+QMap<QPointer<QWidget>, KeysManager *> KeysManager::watched;
+//-------------------------------------------------------------------------
+KeysManager& KeysManager::get(QWidget *w)
+{
+	assert(w != nullptr);
+
+	watched.remove(nullptr);
+	QPointer<QWidget> pw(w);
+	if(watched.contains(pw)) {
+		KeysManager &km = *(watched.value(pw));
+		return km;
+	 } else {
+		KeysManager* k = new KeysManager(w);
+		watched.insert(pw, k);
+		return *k;
+	}
+}
 //-------------------------------------------------------------------------
 KeysManager::KeysManager(QObject *parent)
 	: QObject{parent}
@@ -37,6 +55,7 @@ KeysManager::KeysManager(QObject *parent)
 		KeysCodeIdx.insert(KeyCodes[i],i);
 		KeysCodeNames.insert(KeyCodes[i],KeyNames[i]);
 	}
+	parent->installEventFilter(this);
 }
 //-------------------------------------------------------------------------
 void KeysManager::setSlaveButton(uint idx, QAbstractButton *btn)
@@ -122,7 +141,7 @@ void KeysManager::startEdit(QWidget * w) // [Slot]
 		editButtons.down->setVisible(spb != nullptr);
 		if(spb) connect(editButtons.down, &QAbstractButton::clicked, spb, &QAbstractSpinBox::stepDown);
 	}
-	qDebug() << __PRETTY_FUNCTION__ << editor << "digits only:" << flDigits;
+	qDebug() << "KeysManager::startEdit [" << parent()->objectName() << "] editor:" << editor << "digits only:" << flDigits;
 	Q_EMIT onStartEdit(editor);
 }
 //-------------------------------------------------------------------------
@@ -141,7 +160,7 @@ void KeysManager::stopEdit(bool ok) // [Slot]
 	if(editButtons.cancel) editButtons.cancel->setVisible(false);
 	if(editButtons.shift) editButtons.shift->setVisible(false);
 	if(!editor) return;
-	qDebug() << __PRETTY_FUNCTION__ << sender() << editor << "result:" <<ok;
+	qDebug() << "KeysManager::stopEdit [" << parent()->objectName() << "] editor:" << editor << "result:" << flDigits;
 	QAbstractSpinBox* spb = qobject_cast<QAbstractSpinBox *>(editor);
 	if(spb) {
 		if(editButtons.up) {

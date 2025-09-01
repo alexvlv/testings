@@ -33,9 +33,8 @@ MainWindow::MainWindow(QWidget *parent) :
 	mBar->addWidget(btnConnectDisconnect);
 	mBar->showMessage("Application started successfully!", 3000);
 
-	keyb = &KeysManager::get();
+	keyb = &KeysManager::get(this);
 	connect(keyb, &KeysManager::onKey, this, &MainWindow::onKeyButtonClicked);
-	installEventFilter(keyb);
 	kbdw = new KbdWidget(keyb, this);
 	layout()->addWidget(kbdw);
 
@@ -50,7 +49,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	for (int i=0; i<kbtns.size();i++) {
 		QPushButton *b = kbtns[i];
 		connect(b, &QPushButton::clicked, [this, i, b ]() { qDebug() << "#-Button clicked:" << i << b; });
-		KeysManager::get().setSlaveButton(i,b);
+		keyb->setSlaveButton(i,b);
 	}
 	connect(ui->pushButton,  &QPushButton::clicked, [this](bool ok){ qDebug() << "Button clicked:" << ok; } );
 	connect(ui->checkBox,  &QPushButton::toggled, [this](bool ok){ qDebug() << "checkBox clicked:" << ok << sender(); } );
