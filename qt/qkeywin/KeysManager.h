@@ -162,8 +162,8 @@ private:
 	static const unsigned PTT = 17;
 	static const unsigned CALL = 18;
 
-	#define EMIT_LAMBDA(X) [this]() { const uint idx=X; qDebug() << "KEY pressed:" << KeyNames[idx] << "[" << xstr(X) << "]" ; Q_EMIT SIGNAL_NAME(X);}
-	#define EMIT_RELEASE_LAMBDA(X) [this]() { const uint idx=X; qDebug() << "KEY released:" << KeyNames[idx] << "[" << xstr(X) << "]" ; Q_EMIT SIGNAL_RELEASE_NAME(X);}
+	#define EMIT_LAMBDA(X) [this]() { const uint idx=X; qDebug() << "KEY pressed:" << KeyNames[idx] << "[" << xstr(X) << "] watched:" << parent()->objectName(); Q_EMIT SIGNAL_NAME(X);}
+	#define EMIT_RELEASE_LAMBDA(X) [this]() { const uint idx=X; qDebug() << "KEY released:" << KeyNames[idx] << "[" << xstr(X) << "] watched:" << parent()->objectName() ; Q_EMIT SIGNAL_RELEASE_NAME(X);}
 	using EmitFunc = std::function<void()>;
 	EmitFunc emitters[KEY_MAX] = {
 		EMIT_LAMBDA(0), EMIT_LAMBDA(1), EMIT_LAMBDA(2), EMIT_LAMBDA(3), EMIT_LAMBDA(4),
