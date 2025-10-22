@@ -1,0 +1,9 @@
+// $Id$
+
+#pragma once
+
+#define GIT_REV "@_build_version@"
+#define GIT_BRANCH "@_git_branch@"
+#define GIT_HASH "@_git_hash@"
+#define GIT_DATE "@_git_date@"
+#define BUILD_TIMESTAMP "@_build_timestamp@"
