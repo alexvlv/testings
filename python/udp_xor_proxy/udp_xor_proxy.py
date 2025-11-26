@@ -10,18 +10,22 @@ def parse_hostport(s: str):
     Accepts:
       PORT
       HOST:PORT
-
-    Returns tuple (host, port) where host may be None.
+    Returns (host or None, port)
     """
-    # Only port number case
+    # Pure port (digits only)
     if s.isdigit():
         return None, int(s)
 
-    if ":" not in s:
-        raise argparse.ArgumentTypeError("must be PORT or HOST:PORT")
+    # HOST:PORT
+    if ":" in s:
+        host, port_s = s.rsplit(":", 1)
+        if not port_s.isdigit():
+            raise argparse.ArgumentTypeError("port must be digits")
+        if host == "":
+            raise argparse.ArgumentTypeError("host cannot be empty; use just PORT for default host")
+        return host, int(port_s)
 
-    host, port_s = s.rsplit(":", 1)
-    return host, int(port_s)
+    raise argparse.ArgumentTypeError("must be PORT or HOST:PORT")
 
 
 def xor_bytes(data: bytes, key: bytes) -> bytes:
@@ -38,7 +42,7 @@ def main():
                    help="Listen PORT or HOST:PORT (default 0.0.0.0:12345)")
     p.add_argument("-r", "--remote", type=parse_hostport, required=True,
                    help="Remote PORT or HOST:PORT (port-only means localhost)")
-    p.add_argument("-k", "--key", default="", help="XOR key (string or bytes)")
+    p.add_argument("-k", "--key", default="", help="XOR key (string)")
     args = p.parse_args()
 
     key = args.key.encode()
@@ -56,16 +60,14 @@ def main():
     local = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     local.bind((listen_host, listen_port))
 
-    # Remote side socket (ephemeral bind)
+    # Remote socket (ephemeral bind)
     remote = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     remote.bind(("0.0.0.0", 0))
 
     print(f"Listening on {listen_host}:{listen_port}  <->  {remote_host}:{remote_port}")
 
     remote_addr = (remote_host, remote_port)
-
-    # Store last client address so remote->local knows where to send back
-    state = {"client_addr": None}
+    state = {"client_addr": None}  # store last client for remote->local forwarding
 
     def local_to_remote():
         while True:
