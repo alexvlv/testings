@@ -12,7 +12,7 @@ ifneq (,$(OPENWRT))
 	export STAGING_DIR ?= $(OPENWRT)/staging_dir
 	# Auto-detect toolchain path
 	TOOLCHAIN := $(firstword $(wildcard $(OPENWRT)/staging_dir/toolchain-mips_24kc_gcc-*/))
-	export CROSS_COMPILE ?= $(TOOLCHAIN)/bin/mips-openwrt-linux-
+	export CROSS_COMPILE ?= $(TOOLCHAIN)/bin/mips-openwrt-linux-musl-
 	export ARCH ?= mips
 endif
 

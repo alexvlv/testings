@@ -13,12 +13,7 @@ include $(MAKEFILE_DIR)/kpath.mk
 
 TARGET ?= $(notdir $(patsubst %/,%,$(MAKEFILE_DIR)))
 DEVNAME ?= $(subst -,,$(TARGET))
-
-override INSTALL_LNK="$(MAKEFILE_DIR)/.install"
-INSTALL_ROOT_DIR = $(shell readlink -f $(INSTALL_LNK) 2>/dev/null)
-
-KMOD_PATH ?= extra
-INSTALL_DIR  = $(INSTALL_ROOT_DIR)/lib/modules/$(KERNELRELEASE)/$(KMOD_PATH)/
+export INSTALL_MOD_DIR ?= extra 
 
 MAKEFLAGS += --no-print-directory
 # build quietly by default.  For a verbose build, run "make V=1"
@@ -49,23 +44,35 @@ obj-m      += $(TARGET).o
 
 INCLUDES := $(wildcard   $(addsuffix /*.h, $(MAKEFILE_DIR)) )
 
-
-ifneq ($(wildcard $(MAKEFILE_DIR)/dts/.),)
-all: install dts
-else
-#$(info DTS dir [$(MAKEFILE_DIR)/dts] does not exists)
-all: install
+override INSTALL_LNK=$(MAKEFILE_DIR)/.install
+ifneq (,$(wildcard $(INSTALL_LNK)))
+INSTALL_DIR ?= $(shell readlink -f $(INSTALL_LNK) 2>/dev/null)
 endif
+export INSTALL_MOD_PATH ?= $(INSTALL_DIR)
+
+ifeq (,$(INSTALL_DIR))
+all: $(TARGET).ko
+else
+all: install
+#$(MAKE) -C $(O) M=$(PWD) modules_install
+INSTALL_FULL_PATH ?= $(INSTALL_MOD_PATH)/lib/modules/$(KERNELRELEASE)/$(INSTALL_MOD_DIR)
+install: $(TARGET).ko
+	$(QUIET) echo "Install $(TARGET).ko to [$(INSTALL_FULL_PATH)] ..." 
+	$(QUIET) install -d -m 0755 ${INSTALL_FULL_PATH}
+	$(QUIET) install -t ${INSTALL_FULL_PATH} -m 0644 $(TARGET).ko
+endif
+
+modules_install: $(TARGET).ko
+	$(MAKE) -C $(O) M=$(PWD) modules_install
+
 
 .PHONY: dis
 dis: $(TARGET).ko
 	@echo "Disassemble create..." # -DSx
 	$(QUIET) $(SDK_PREFIX) $$OBJDUMP  -Sx $(TARGET)-unstripped.ko  > .$(TARGET).dis
 
-install: $(TARGET).ko $(INSTALL_DIR)
-	$(QUIET) echo "Install $(TARGET).ko to [$(INSTALL_DIR)] ..." 
-	$(QUIET) cp -f $(TARGET).ko $(INSTALL_DIR)
-
+.PHONY: mod
+mod: $(TARGET).ko
 # modules
 $(TARGET).ko: $(GITREVFILE)  $(THIS_MAKEFILE) $(SOURCES) $(INCLUDES)
 	$(QUIET) echo KERNELRELEASE: $(KERNELRELEASE);
