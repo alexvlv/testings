@@ -77,6 +77,7 @@ static const struct tty_operations suart_tty_ops = {
 static int suart_probe(struct platform_device *pdev)
 {
 	struct suart_dev *su;
+	struct device *tty_dev;
 	int ret;
 
 	pr_info(DRV_NAME ": probe\n");
@@ -123,8 +124,9 @@ static int suart_probe(struct platform_device *pdev)
 	su->tty_drv->ports[0] = &su->port;
 
 	/* create /dev/ttySU0 */
-	ret = tty_register_device(su->tty_drv, 0, &pdev->dev);
-	if (ret) {
+	tty_dev = tty_register_device(su->tty_drv, 0, &pdev->dev);
+	if (IS_ERR(tty_dev)) {
+		ret = PTR_ERR(tty_dev);
 		pr_err(DRV_NAME ": tty_register_device failed: %d\n", ret);
 		tty_unregister_driver(su->tty_drv);
 		return ret;
