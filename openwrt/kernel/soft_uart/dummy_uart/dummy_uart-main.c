@@ -19,18 +19,18 @@ $Id$
 #include <linux/uaccess.h>
 #include <linux/version.h>
 
-struct uart_data {
+struct bitbang_data {
 	struct platform_device *pdev;   // back-reference
 };
 
 DEBUG_PARAM_DEF();
 
-struct platform_device *uart_pdev = NULL;
+struct platform_device *bitbang_uart_pdev = NULL;
 
 //-------------------------------------------------------------------------
-static int uart_probe(struct platform_device *pdev)
+static int bitbang_uart_probe(struct platform_device *pdev)
 {
-	struct uart_data *d;
+	struct bitbang_data *d;
 	
 	d = devm_kzalloc(&pdev->dev, sizeof(*d), GFP_KERNEL);
 	if (!d)
@@ -42,17 +42,17 @@ static int uart_probe(struct platform_device *pdev)
 	return 0;
 }
 //-------------------------------------------------------------------------
-static int uart_remove(struct platform_device *pdev)
+static int bitbang_uart_remove(struct platform_device *pdev)
 {
 	INFO("Removed %s", dev_name(&pdev->dev));
 	return 0;
 }
 //-------------------------------------------------------------------------
-static struct platform_driver uart_driver = {
-	.probe  = uart_probe,
-	.remove = uart_remove,
+static struct platform_driver bitbang_uart_driver = {
+	.probe  = bitbang_uart_probe,
+	.remove = bitbang_uart_remove,
 	.driver = {
-		.name = "soft_uart",
+		.name = "bitbang_uart",
 		.owner = THIS_MODULE,
 	},
 };
@@ -64,19 +64,19 @@ static int __init_module(void)
 
 	INFO("Loading... (GIT Rev." GIT_REVISION ") [Build: " __TIME__ " " __DATE__ "]");
 
-	pdev = platform_device_register_simple("soft_uart", -1, NULL, 0);
+	pdev = platform_device_register_simple("bitbang_uart", -1, NULL, 0);
 	if (IS_ERR(pdev)) {
 		ERROR("Platform device register failed!");
 		return PTR_ERR(pdev);
 	}
 
-	ret = platform_driver_register(&uart_driver);
+	ret = platform_driver_register(&bitbang_uart_driver);
 	if (ret) {
 		platform_device_unregister(pdev);
 		return ret;
 	}
 
-	uart_pdev = pdev;
+	bitbang_uart_pdev = pdev;
 	INFO("Loaded %s", dev_name(&pdev->dev));
 	return 0;
 }
@@ -84,8 +84,8 @@ static int __init_module(void)
 static void __exit_module(void)
 {
 	//ret = driver_for_each_device(&uart_driver.driver, NULL, NULL, list_pdev);
-	platform_driver_unregister(&uart_driver);
-	platform_device_unregister(uart_pdev);
+	platform_driver_unregister(&bitbang_uart_driver);
+	platform_device_unregister(bitbang_uart_pdev);
 	INFO("Unloaded (GIT Rev." GIT_REVISION ") [Build: " __TIME__ " " __DATE__ "]" );
 }
 //-------------------------------------------------------------------------
