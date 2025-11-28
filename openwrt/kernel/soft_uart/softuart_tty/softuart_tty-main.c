@@ -24,19 +24,25 @@ static struct platform_device *suart_pdev;
 
 static int suart_open(struct tty_struct *tty, struct file *filp)
 {
-	struct suart_dev *su = tty->driver_data;
-	int ret;
+	struct suart_dev *su;
 
-	ret = tty_port_open(&su->port, tty, filp);
-	if (ret)
-		pr_err(DRV_NAME ": tty_port_open failed: %d\n", ret);
+	/* For single instance, get from platform device */
+	su = platform_get_drvdata(suart_pdev);
+	if (!su) {
+		pr_err(DRV_NAME ": suart_open: failed to get suart_dev\n");
+		return -ENODEV;
+	}
 
-	return ret;
+	tty->driver_data = su;
+	pr_info(DRV_NAME ": open: %p\n",su);
+
+	return tty_port_open(&su->port, tty, filp);
 }
 
 static void suart_close(struct tty_struct *tty, struct file *filp)
 {
 	struct suart_dev *su = tty->driver_data;
+	pr_info(DRV_NAME ": close: %p\n",su);
 
 	tty_port_close(&su->port, tty, filp);
 }
@@ -45,8 +51,10 @@ static void suart_close(struct tty_struct *tty, struct file *filp)
 static ssize_t suart_write(struct tty_struct *tty,
 			   const unsigned char *buf, size_t count)
 {
-	tty_insert_flip_string(tty->port, buf, count);
-	tty_flip_buffer_push(tty->port);
+	struct suart_dev *su = tty->driver_data;
+
+	tty_insert_flip_string(&su->port, buf, count);
+	tty_flip_buffer_push(&su->port);
 	return count;
 }
 
