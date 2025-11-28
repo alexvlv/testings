@@ -8,8 +8,9 @@ space:= $(empty) $(empty)
 $(if $(findstring $(space),$(MAKEFILE_DIR)),$(error ERROR: The path must not include any spaces))
 
 -include $(MAKEFILE_DIR)/.local.mk
--include $(MAKEFILE_DIR)/rules.mk
-include $(MAKEFILE_DIR)/kpath.mk
+-include $(MAKEFILE_DIR)/mk/rules.mk
+include $(MAKEFILE_DIR)/mk/kpath.mk
+include $(MAKEFILE_DIR)/mk/git.mk
 
 TARGET ?= $(notdir $(patsubst %/,%,$(MAKEFILE_DIR)))
 DEVNAME ?= $(subst -,,$(TARGET))
@@ -27,20 +28,9 @@ $(TARGET)-objs := $(SOURCES:.c=.o)
 
 export GITREVFILE := $(PWD)/.git.h
 
-define gitrev
-HASH=`git -C "$MAKEFILE_DIR" log -n 1 --format="%h" 2>/dev/null`; \
-STAR=`git -C "$MAKEFILE_DIR"  status --porcelain 2>/dev/null`; [ -n "$STAR" ] && STAR="*"; \
-CNT=`git -C "$MAKEFILE_DIR" rev-list --count HEAD  2>/dev/null`; \
-BRANCH=`git -C "$MAKEFILE_DIR" rev-parse --abbrev-ref HEAD 2>/dev/null`; \
-DATE=`git -C "$MAKEFILE_DIR" log -n 1 --format="%cd" --date="format:%Y-%m-%d %H:%M" 2>/dev/null`; \
-REV="r$CNT-$HASH$STAR $BRANCH $DATE"; \
-echo "GIT $REV"; \
-echo "#ifndef GIT_REVISION \n#define GIT_REVISION \"$REV\" \n#endif" > $GITREVFILE;
-endef
-
 ccflags-y += -DDEVNAME=$(DEVNAME) -Wno-date-time -Wno-error
 ccflags-y += -DDEBUG
-obj-m      += $(TARGET).o
+obj-m += $(TARGET).o
 
 INCLUDES := $(wildcard   $(addsuffix /*.h, $(MAKEFILE_DIR)) )
 
@@ -64,7 +54,6 @@ endif
 
 modules_install: $(TARGET).ko
 	$(MAKE) -C $(O) M=$(PWD) modules_install
-
 
 .PHONY: dis
 dis: $(TARGET).ko
