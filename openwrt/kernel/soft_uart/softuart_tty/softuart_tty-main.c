@@ -119,11 +119,16 @@ static int suart_probe(struct platform_device *pdev)
 		return ret;
 	}
 
-	/* bind driver to one port */
-	tty_port_link_device(&su->port, su->tty_drv, 0);
 	platform_set_drvdata(pdev, su);
-
 	su->tty_drv->ports[0] = &su->port;
+
+	/* create /dev/ttySU0 */
+	ret = tty_register_device(su->tty_drv, 0, &pdev->dev);
+	if (ret) {
+		pr_err(DRV_NAME ": tty_register_device failed: %d\n", ret);
+		tty_unregister_driver(su->tty_drv);
+		return ret;
+	}
 
 	dev_info(&pdev->dev, "soft UART registered as /dev/%s0\n", TTY_NAME);
 
@@ -189,5 +194,5 @@ module_init(suart_init);
 module_exit(suart_exit);
 
 MODULE_AUTHOR("You");
-MODULE_DESCRIPTION("Minimal loopback software UART for OpenWrt 6.6 kernel");
+MODULE_DESCRIPTION("Minimal loopback software UART for OpenWrt 6.6 kernel with /dev node");
 MODULE_LICENSE("GPL");
