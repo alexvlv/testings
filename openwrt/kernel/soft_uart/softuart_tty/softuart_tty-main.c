@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
 #include <linux/module.h>
 #include <linux/platform_device.h>
-#include <linux/tty.h>            /* struct tty_struct */
+#include <linux/tty.h>            
 #include <linux/tty_driver.h>
 #include <linux/tty_flip.h>
 #include <linux/tty_port.h>
@@ -24,26 +24,27 @@ static struct platform_device *suart_pdev;
 
 static int suart_open(struct tty_struct *tty, struct file *filp)
 {
-	struct suart_dev *su;
-
-	/* For single instance, get from platform device */
-	su = platform_get_drvdata(suart_pdev);
-	if (!su) {
-		pr_err(DRV_NAME ": suart_open: failed to get suart_dev\n");
-		return -ENODEV;
-	}
+	struct suart_dev *su = platform_get_drvdata(suart_pdev);
+	int ret;
 
 	tty->driver_data = su;
-	pr_info(DRV_NAME ": open: %p\n",su);
+	pr_info(DRV_NAME ": open: %p\n", su);
 
-	return tty_port_open(&su->port, tty, filp);
+	/* Properly link tty_struct and tty_port */
+	ret = tty_port_open(&su->port, tty, filp);
+	if (ret)
+		return ret;
+
+	tty->port = &su->port;
+
+	return 0;
 }
 
 static void suart_close(struct tty_struct *tty, struct file *filp)
 {
 	struct suart_dev *su = tty->driver_data;
-	pr_info(DRV_NAME ": close: %p\n",su);
 
+	pr_info(DRV_NAME ": close: %p\n", su);
 	tty_port_close(&su->port, tty, filp);
 }
 
@@ -51,10 +52,9 @@ static void suart_close(struct tty_struct *tty, struct file *filp)
 static ssize_t suart_write(struct tty_struct *tty,
 			   const unsigned char *buf, size_t count)
 {
-	struct suart_dev *su = tty->driver_data;
-
-	tty_insert_flip_string(&su->port, buf, count);
-	tty_flip_buffer_push(&su->port);
+	/* Use tty_struct, not &port */
+	tty_insert_flip_string(tty, buf, count);
+	tty_flip_buffer_push(tty);
 	return count;
 }
 
@@ -66,7 +66,7 @@ static unsigned int suart_write_room(struct tty_struct *tty)
 static void suart_set_termios(struct tty_struct *tty,
 			      const struct ktermios *old)
 {
-	/* minimal stub: accept termios settings */
+	/* minimal stub */
 }
 
 /* TTY operations table */
@@ -108,7 +108,7 @@ static int suart_probe(struct platform_device *pdev)
 
 	su->tty_drv->driver_name	= DRV_NAME;
 	su->tty_drv->name		= TTY_NAME;
-	su->tty_drv->major		= 0;	/* dynamic */
+	su->tty_drv->major		= 0;
 	su->tty_drv->minor_start	= 0;
 
 	su->tty_drv->type		= TTY_DRIVER_TYPE_SERIAL;
