@@ -4,6 +4,9 @@ $Id$
 
 #define DBG_LVL_DEFAULT 1
 
+#define N_PORTS 1
+#define TTY_NAME	"ttyEMU"
+
 #include ".git.h"
 #include "kdbg.h"
 
@@ -35,47 +38,67 @@ DEBUG_PARAM_DEF();
 struct platform_device *bitbang_uart_pdev = NULL;
 
 //-------------------------------------------------------------------------
-static int bitbang_tty_init(struct bitbang_data *bitbang_data)
+static int bitbang_tty_init(struct bitbang_data *data)
 {
+	int ret = 0;
 	struct tty_driver *tty_drv;
 	struct tty_port *tty_port;
+	struct device *ttydev;
+	struct platform_device *pdev = data->pdev;
 
-	tty_drv = bitbang_data->tty_drv;
+	tty_drv = tty_alloc_driver(1, TTY_DRIVER_REAL_RAW | TTY_DRIVER_DYNAMIC_DEV);
+	if (IS_ERR(tty_drv)) {
+		printk(KERN_ALERT "soft_uart: Failed to allocate the driver.\n");
+		return -ENOMEM;
+	}
 
-	tty_drv = alloc_tty_driver(1);
 	tty_drv->owner = THIS_MODULE;
-	tty_drv->driver_name = DRIVER_NAME;
+	tty_drv->driver_name = DEVICE;
 	tty_drv->name = TTY_NAME;
 	tty_drv->major = 0;
 	tty_drv->type = TTY_DRIVER_TYPE_SERIAL;
 	tty_drv->subtype = SERIAL_TYPE_NORMAL;
 	tty_drv->flags = TTY_DRIVER_REAL_RAW | TTY_DRIVER_DYNAMIC_DEV;
 	tty_drv->init_termios = tty_std_termios;
-	tty_set_operations(tty_drv, &gu_tty_ops);
+	tty_drv->init_termios.c_ispeed = 4800;
+	tty_drv->init_termios.c_ospeed = 4800;
+	tty_drv->init_termios.c_cflag  = B4800 | CREAD | CS8 | CLOCAL;
+	
+	data->tty_drv = tty_drv;
+
+	tty_port = &data->tty_port;
+	tty_port_init(tty_port);
+
+	//tty_set_operations(tty_drv, &gu_tty_ops);
 	ret = tty_register_driver(tty_drv);
 	if (ret) {
-		ERROR("tty_register_driver failed!");
+		ERROR("tty_register_driver failed: %d!", ret);
 		return ret;
 	}
 
-	tty_port = bitbang_data->tty_port;
-	tty_port_init(tty_port);
-
-	dev = tty_register_device(GU->tty_drv, 0, NULL);
-	if (IS_ERR(dev))
-		return PTR_ERR(dev);
-
+	ttydev = tty_port_register_device(tty_port, tty_drv, 0, &pdev->dev);
+	if (IS_ERR(ttydev)) {
+		ERROR("tty_port_register_device failed: %ld", PTR_ERR(ttydev));
+		tty_unregister_driver(tty_drv);
+		return PTR_ERR(ttydev);
+	}
+	return ret;
 }
 //-------------------------------------------------------------------------
 static int bitbang_uart_probe(struct platform_device *pdev)
 {
 	struct bitbang_data *d;
-	
+	int ret; 
 	d = devm_kzalloc(&pdev->dev, sizeof(*d), GFP_KERNEL);
 	if (!d)
 		return -ENOMEM;
 	d->pdev = pdev;
-	platform_set_drvdata(pdev, d);	
+	platform_set_drvdata(pdev, d);
+
+	ret = bitbang_tty_init(d);
+	if(ret != 0) {
+		return -ENOMEM;
+	}
 
 	INFO("Probe done for %s", dev_name(&pdev->dev));
 	return 0;
