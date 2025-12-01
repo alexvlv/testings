@@ -58,14 +58,17 @@ static int bitbang_open(struct tty_struct *tty, struct file *filp)
 	}
 #endif
 	DBG("open d=%p", d);
-	return tty_port_open(&d->tty_port, tty, filp);
+	/* Skip tty_port_open() on hardware-constrained devices */
+	//return tty_port_open(&d->tty_port, tty, filp);
+	return 0;	
 }
 //-------------------------------------------------------------------------
 static void bitbang_close(struct tty_struct *tty, struct file *filp)
 {
 	struct bitbang_data *d = tty->driver_data;
 	DBG("close d=%p", d);
-	tty_port_close(&d->tty_port, tty, filp);
+	/* Skip tty_port_close() as well */
+	//tty_port_close(&d->tty_port, tty, filp);
 }
 //-------------------------------------------------------------------------
 static ssize_t bitbang_write(struct tty_struct *tty, const unsigned char *buf, size_t count)
