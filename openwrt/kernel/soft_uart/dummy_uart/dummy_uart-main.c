@@ -18,15 +18,54 @@ $Id$
 #include <linux/seq_file.h>
 #include <linux/uaccess.h>
 #include <linux/version.h>
+#include <linux/hrtimer.h>
+#include <linux/ktime.h>
+#include <linux/tty.h>
+#include <linux/tty_driver.h>
+#include <linux/tty_flip.h>
 
 struct bitbang_data {
 	struct platform_device *pdev;   // back-reference
+	struct tty_driver *tty_drv;
+	struct tty_port tty_port;
 };
 
 DEBUG_PARAM_DEF();
 
 struct platform_device *bitbang_uart_pdev = NULL;
 
+//-------------------------------------------------------------------------
+static int bitbang_tty_init(struct bitbang_data *bitbang_data)
+{
+	struct tty_driver *tty_drv;
+	struct tty_port *tty_port;
+
+	tty_drv = bitbang_data->tty_drv;
+
+	tty_drv = alloc_tty_driver(1);
+	tty_drv->owner = THIS_MODULE;
+	tty_drv->driver_name = DRIVER_NAME;
+	tty_drv->name = TTY_NAME;
+	tty_drv->major = 0;
+	tty_drv->type = TTY_DRIVER_TYPE_SERIAL;
+	tty_drv->subtype = SERIAL_TYPE_NORMAL;
+	tty_drv->flags = TTY_DRIVER_REAL_RAW | TTY_DRIVER_DYNAMIC_DEV;
+	tty_drv->init_termios = tty_std_termios;
+	tty_set_operations(tty_drv, &gu_tty_ops);
+	ret = tty_register_driver(tty_drv);
+	if (ret) {
+		ERROR("tty_register_driver failed!");
+		return ret;
+	}
+
+	tty_port = bitbang_data->tty_port;
+	tty_port_init(tty_port);
+
+	dev = tty_register_device(GU->tty_drv, 0, NULL);
+	if (IS_ERR(dev))
+		return PTR_ERR(dev);
+
+}
 //-------------------------------------------------------------------------
 static int bitbang_uart_probe(struct platform_device *pdev)
 {
@@ -52,7 +91,7 @@ static struct platform_driver bitbang_uart_driver = {
 	.probe  = bitbang_uart_probe,
 	.remove = bitbang_uart_remove,
 	.driver = {
-		.name = "bitbang_uart",
+		.name = DEVICE,
 		.owner = THIS_MODULE,
 	},
 };
@@ -64,7 +103,7 @@ static int __init_module(void)
 
 	INFO("Loading... (GIT Rev." GIT_REVISION ") [Build: " __TIME__ " " __DATE__ "]");
 
-	pdev = platform_device_register_simple("bitbang_uart", -1, NULL, 0);
+	pdev = platform_device_register_simple(DEVICE, -1, NULL, 0);
 	if (IS_ERR(pdev)) {
 		ERROR("Platform device register failed!");
 		return PTR_ERR(pdev);
