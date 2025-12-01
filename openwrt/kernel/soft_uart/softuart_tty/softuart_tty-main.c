@@ -2,11 +2,12 @@
 /*
  * softuart_tty-main.c
  *
- * Minimal loopback TTY driver (OpenWrt / kernel 6.6 compatible).
- * - DT-free: creates a simple platform_device in module init so probe() runs.
- * - Creates /dev/ttySU0.
- * - Loopback: writes are immediately injected into the RX flip buffer.
- * - Preserves pointer debug prints in open/close.
+ * Minimal loopback TTY driver — OpenWrt / Linux 6.6 compatible.
+ *
+ * - DT-free: uses platform_device_register_simple() in module init
+ * - Creates /dev/ttySU0
+ * - Loopback: writes injected to RX flip buffer
+ * - Robust tty->driver_data initialization
  */
 
 #include <linux/module.h>
@@ -24,20 +25,32 @@
 struct suart_dev {
 	struct tty_driver	*tty_drv;
 	struct tty_port		port;
-	/* future: add ring buffers / timers here */
+	/* future: tx/rx buffers, timers */
 };
 
 static struct platform_device *softuart_pdev;
 
-/* ----------------------------- TTY ops --------------------------------- */
+/* ---------- TTY ops ---------- */
 
 static int suart_open(struct tty_struct *tty, struct file *filp)
 {
 	struct suart_dev *su = tty->driver_data;
 
+	/* If core didn't set driver_data, try to recover from tty->port */
+	if (!su) {
+		if (tty->port) {
+			su = container_of(tty->port, struct suart_dev, port);
+			tty->driver_data = su;
+		} else {
+			/* last resort: platform_get_drvdata */
+			su = platform_get_drvdata(softuart_pdev);
+			tty->driver_data = su;
+		}
+	}
+
 	pr_info(DRV_NAME ": open: %p\n", su);
 
-	/* nothing special to start for loopback */
+	/* Nothing special to start for loopback */
 	return 0;
 }
 
@@ -62,7 +75,6 @@ static ssize_t suart_write(struct tty_struct *tty, const unsigned char *buf,
 		return -EIO;
 	}
 
-	/* insert into flip buffer (RX) and push */
 	tty_insert_flip_string(port, buf, count);
 	tty_flip_buffer_push(port);
 
@@ -71,16 +83,17 @@ static ssize_t suart_write(struct tty_struct *tty, const unsigned char *buf,
 
 static unsigned int suart_write_room(struct tty_struct *tty)
 {
-	/* always room in this simple loopback */
 	return 4096;
 }
 
 static void suart_set_termios(struct tty_struct *tty, const struct ktermios *old)
 {
-	/* minimal: accept whatever user sets; no hardware to configure */
+	/* minimal: accept settings, no hardware config */
+	(void)tty;
+	(void)old;
 }
 
-/* operations table */
+/* TTY operations table */
 static const struct tty_operations suart_tty_ops = {
 	.open		= suart_open,
 	.close		= suart_close,
@@ -89,7 +102,7 @@ static const struct tty_operations suart_tty_ops = {
 	.set_termios	= suart_set_termios,
 };
 
-/* ----------------------------- platform probe/remove ------------------ */
+/* ---------- platform probe/remove ---------- */
 
 static int suart_probe(struct platform_device *pdev)
 {
@@ -115,7 +128,7 @@ static int suart_probe(struct platform_device *pdev)
 
 	drv->driver_name	= DRV_NAME;
 	drv->name		= DEV_NAME;
-	drv->major		= 0; /* dynamic */
+	drv->major		= 0;	/* dynamic */
 	drv->minor_start	= 0;
 
 	drv->type		= TTY_DRIVER_TYPE_SERIAL;
@@ -127,25 +140,24 @@ static int suart_probe(struct platform_device *pdev)
 
 	tty_set_operations(drv, &suart_tty_ops);
 
-	/* register driver */
+	/* set driver_state so TTY core will set tty->driver_data */
+	drv->driver_state = su;
+
+	/* initialize port */
+	tty_port_init(&su->port);
+
+	/* expose the port in driver's ports[] */
+	drv->ports[0] = &su->port;
+
+	/* register tty driver */
 	ret = tty_register_driver(drv);
 	if (ret) {
 		pr_err(DRV_NAME ": tty_register_driver failed: %d\n", ret);
-		put_tty_driver(drv); /* safe: put_tty_driver may exist on some kernels; if not, build will warn */
+		/* cannot call put_tty_driver() on this kernel; skip */
 		return ret;
 	}
 
-	/* initialize port and bind */
-	tty_port_init(&su->port);
-
-	/* set driver state so tty->driver_data will be populated by tty core */
-	drv->driver_state = su;
-
-	/* link port to driver ports[] for index 0 */
-	drv->ports[0] = &su->port;
-
-	/* create /sys/class/tty/ttySU0 and trigger udev to create /dev/ttySU0 */
-	/* use parent = NULL to make sysfs entry under /sys/class/tty */
+	/* create sysfs /sys/class/tty/ttySU0 and trigger udev to create /dev/ttySU0 */
 	tty_dev = tty_register_device(drv, 0, NULL);
 	if (IS_ERR(tty_dev)) {
 		ret = PTR_ERR(tty_dev);
@@ -154,7 +166,7 @@ static int suart_probe(struct platform_device *pdev)
 		return ret;
 	}
 
-	/* save pointers */
+	/* store pointers / driver state */
 	su->tty_drv = drv;
 	platform_set_drvdata(pdev, su);
 
@@ -168,33 +180,34 @@ static int suart_remove(struct platform_device *pdev)
 
 	pr_info(DRV_NAME ": remove\n");
 
-	/* unregister device & driver */
-	tty_unregister_device(su->tty_drv, 0);
-	tty_unregister_driver(su->tty_drv);
+	/* remove /dev and unregister driver */
+	if (su && su->tty_drv) {
+		tty_unregister_device(su->tty_drv, 0);
+		tty_unregister_driver(su->tty_drv);
+	}
 
 	/* destroy port */
-	tty_port_destroy(&su->port);
+	if (su)
+		tty_port_destroy(&su->port);
 
 	return 0;
 }
 
-/* ----------------------------- module init/exit ---------------------- */
+/* ---------- module init/exit ---------- */
 
-/* We'll create a simple platform device so probe() runs without DT */
 static struct platform_driver suart_driver = {
-	.probe	= suart_probe,
-	.remove	= suart_remove,
 	.driver = {
 		.name = DRV_NAME,
 		.owner = THIS_MODULE,
 	},
+	.probe	= suart_probe,
+	.remove	= suart_remove,
 };
 
 static int __init suart_init(void)
 {
 	int ret;
 
-	/* create platform device (DT-free) */
 	softuart_pdev = platform_device_register_simple(DRV_NAME, -1, NULL, 0);
 	if (IS_ERR(softuart_pdev)) {
 		ret = PTR_ERR(softuart_pdev);
