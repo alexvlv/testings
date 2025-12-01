@@ -38,6 +38,37 @@ DEBUG_PARAM_DEF();
 struct platform_device *bitbang_uart_pdev = NULL;
 
 //-------------------------------------------------------------------------
+static int bitbang_open(struct tty_struct *tty, struct file *filp)
+{
+	struct bitbang_data *d = tty->driver_data;
+	DBG("open d=%p", d);
+	return 0;
+}
+//-------------------------------------------------------------------------
+static void bitbang_close(struct tty_struct *tty, struct file *filp)
+{
+	struct bitbang_data *d = tty->driver_data;
+	DBG("close d=%p", d);
+}
+//-------------------------------------------------------------------------
+static ssize_t bitbang_write(struct tty_struct *tty, const unsigned char *buf, size_t count)
+{
+	struct bitbang_data *d = tty->driver_data;
+	DBG("write d=%p count=%zu", d, count);
+
+	/* Loopback → send written data to RX side */
+	//tty_insert_flip_string(&mu->port, buf, count);
+	//tty_flip_buffer_push(&mu->port);
+
+	return count;
+}
+//-------------------------------------------------------------------------
+static const struct tty_operations bitbang_tty_ops = {
+	.open  = bitbang_open,
+	.close = bitbang_close,
+	.write = bitbang_write,
+};
+//-------------------------------------------------------------------------
 static int bitbang_tty_init(struct bitbang_data *data)
 {
 	int ret = 0;
@@ -64,12 +95,12 @@ static int bitbang_tty_init(struct bitbang_data *data)
 	tty_drv->init_termios.c_ospeed = 4800;
 	tty_drv->init_termios.c_cflag  = B4800 | CREAD | CS8 | CLOCAL;
 	
+	tty_set_operations(tty_drv, &bitbang_tty_ops);
 	data->tty_drv = tty_drv;
 
 	tty_port = &data->tty_port;
 	tty_port_init(tty_port);
 
-	//tty_set_operations(tty_drv, &gu_tty_ops);
 	ret = tty_register_driver(tty_drv);
 	if (ret) {
 		ERROR("tty_register_driver failed: %d!", ret);
@@ -106,6 +137,9 @@ static int bitbang_uart_probe(struct platform_device *pdev)
 //-------------------------------------------------------------------------
 static int bitbang_uart_remove(struct platform_device *pdev)
 {
+	struct bitbang_data *d = platform_get_drvdata(pdev);
+	tty_unregister_driver(d->tty_drv);
+	tty_port_destroy(&d->tty_port);
 	INFO("Removed %s", dev_name(&pdev->dev));
 	return 0;
 }
