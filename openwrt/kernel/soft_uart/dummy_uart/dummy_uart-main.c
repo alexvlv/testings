@@ -41,6 +41,22 @@ struct platform_device *bitbang_uart_pdev = NULL;
 static int bitbang_open(struct tty_struct *tty, struct file *filp)
 {
 	struct bitbang_data *d = tty->driver_data;
+	if (!d) {
+		d = container_of(tty->port, struct bitbang_data, tty_port);
+		if (!d) {
+			ERROR("open failed to get platform data");
+			return -ENODEV;
+		}
+		tty->driver_data = d;
+	}
+#if 0	
+	struct bitbang_data *d = tty->driver_data;
+	if (!d) {
+		WARNING("open d=%p !!!", d);
+		d = tty->driver->driver_state; /* assign driver_state for single port */
+		tty->driver_data = d;
+	}
+#endif
 	DBG("open d=%p", d);
 	return 0;
 }
@@ -97,6 +113,7 @@ static int bitbang_tty_init(struct bitbang_data *data)
 	
 	tty_set_operations(tty_drv, &bitbang_tty_ops);
 	data->tty_drv = tty_drv;
+	tty_drv->driver_state = data; /* store single-port private data */
 
 	tty_port = &data->tty_port;
 	tty_port_init(tty_port);
@@ -124,12 +141,12 @@ static int bitbang_uart_probe(struct platform_device *pdev)
 	if (!d)
 		return -ENOMEM;
 	d->pdev = pdev;
-	platform_set_drvdata(pdev, d);
 
 	ret = bitbang_tty_init(d);
 	if(ret != 0) {
 		return -ENOMEM;
 	}
+	platform_set_drvdata(pdev, d);
 
 	INFO("Probe done for %s", dev_name(&pdev->dev));
 	return 0;
