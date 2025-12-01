@@ -155,6 +155,7 @@ static int bitbang_uart_probe(struct platform_device *pdev)
 static int bitbang_uart_remove(struct platform_device *pdev)
 {
 	struct bitbang_data *d = platform_get_drvdata(pdev);
+	tty_unregister_device(d->tty_drv, 0);
 	tty_unregister_driver(d->tty_drv);
 	tty_port_destroy(&d->tty_port);
 	INFO("Removed %s", dev_name(&pdev->dev));
