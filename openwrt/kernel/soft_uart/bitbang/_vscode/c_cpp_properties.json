@@ -1,0 +1,21 @@
+        {
+            "configurations": [
+                {
+                    "name": "OpenWrt",
+                    "includePath": [
+                        "${workspaceFolder}/**",
+                        "/work/atheros/v24.10.4/openwrt/build_dir/target-mips_24kc_musl/linux-ath79_generic/linux-6.6.110/include",
+                        "/work/atheros/v24.10.4/openwrt/build_dir/target-mips_24kc_musl/linux-ath79_generic/linux-6.6.110/arch/mips/include",
+                        "/work/atheros/v24.10.4/openwrt/staging_dir/toolchain-mips_24kc_gcc-13.3.0_musl/include",
+                        "/work/atheros/v24.10.4/openwrt/staging_dir/target-mips_24kc_musl/usr/include"
+                        // Add other necessary include paths from your SDK/build system
+                    ],
+                    "defines": [],
+                    "compilerPath": "/work/atheros/v24.10.4/openwrt/staging_dir/toolchain-mips_24kc_gcc-13.3.0_musl/bin/mips-openwrt-linux-musl-gcc",
+                    "cStandard": "c11",
+                    "cppStandard": "c++17",
+                    "intelliSenseMode": "gcc-x64" // Adjust based on your host architecture
+                }
+            ],
+            "version": 4
+        }

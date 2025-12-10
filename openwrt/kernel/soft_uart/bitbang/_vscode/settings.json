@@ -1,0 +1,52 @@
+{
+	"files.exclude": {
+		"**/.openwrt": true,
+	},
+	"files.associations": {
+		"ioctl.h": "c",
+		"module.h": "c",
+		"init.h": "c",
+		"uaccess.h": "c",
+		"mm.h": "c",
+		"device.h": "c",
+		"seq_file.h": "c",
+		"version.h": "c",
+		"thread_info.h": "c",
+		"overflow.h": "c",
+		"kdbg.h": "c",
+		"dev_printk.h": "c",
+		"ratelimit.h": "c",
+		"spinlock.h": "c",
+		"sched.h": "c",
+		"types.h": "c",
+		"pci.h": "c",
+		"pci_regs.h": "c",
+		"platform_device.h": "c",
+		".git.h": "c",
+		"internet": "c",
+		"fs.h": "c",
+		"bitbang.h": "c",
+		"cdev.h": "c",
+		"list.h": "c",
+		"uart.h": "c",
+		"errno.h": "c",
+		"array": "c",
+		"string_view": "c",
+		"initializer_list": "c",
+		"utility": "c",
+		"functional": "c",
+		"ktime.h": "c",
+		"hrtimer.h": "c",
+		"kfifo.h": "c"
+	},
+	"[c]": {
+	"editor.insertSpaces": false,
+	"editor.tabSize": 4
+	},
+	"[cpp]": {
+	"editor.insertSpaces": false,
+	"editor.tabSize": 4
+	},
+	"editor.insertSpaces": false,
+	"editor.detectIndentation": false
+}
