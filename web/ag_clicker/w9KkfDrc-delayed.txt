@@ -84,8 +84,10 @@ function findAndClick() {
                     throw new Error("Кнопки grade не найдены!");
                 }
 
-                const randomButton = buttons[Math.floor(Math.random() * buttons.length)];
-                randomButton.click();
+                //const randomButton = buttons[Math.floor(Math.random() * buttons.length)];
+                //randomButton.click();
+                const bestButton = buttons[4];
+                bestButton.click();
                 console.log("Клик выполнен по кнопке!");
 
                 setTimeout(() => {
@@ -98,7 +100,7 @@ function findAndClick() {
                 console.log("Ошибка. Перезапуск скрипта...");
                 setTimeout(waitAndRestart, 1000);
             }
-        }, 900);
+        }, 4770);
 // 4770
 
     } catch (error) {
