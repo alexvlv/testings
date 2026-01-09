@@ -1,0 +1,124 @@
+// ===== ПРОВЕРКА КАПЧИ =====
+function isCaptchaVisible() {
+    return !!document.querySelector('img.captcha__image[alt="Captcha"]');
+}
+ 
+function waitForCaptchaToDisappear(callback) {
+    if (!isCaptchaVisible()) {
+        callback();
+        return;
+    }
+ 
+    console.log("⛔ Обнаружена капча. Скрипт поставлен на паузу...");
+ 
+    const interval = setInterval(() => {
+        if (!isCaptchaVisible()) {
+            clearInterval(interval);
+            console.log("✅ Капча исчезла. Продолжаем работу скрипта...");
+            callback();
+        }
+    }, 1000);
+}
+ 
+// ===== КЛИК В ЦЕНТР ЭКРАНА =====
+function clickCenter() {
+    console.log("Выполняем клик в центр экрана...");
+ 
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
+ 
+    const centerX = screenWidth / 2;
+    const centerY = screenHeight / 2;
+ 
+    const clickEvent = new MouseEvent('click', {
+        bubbles: true,
+        cancelable: true,
+        view: window,
+        clientX: centerX,
+        clientY: centerY
+    });
+ 
+    document.dispatchEvent(clickEvent);
+    console.log("Клик в центр экрана выполнен!");
+}
+ 
+// ===== ОСНОВНАЯ ЛОГИКА =====
+function findAndClick() {
+    if (isCaptchaVisible()) {
+        waitForCaptchaToDisappear(findAndClick);
+        return;
+    }
+ 
+    try {
+        console.log("Начинаем поиск элемента с указанным атрибутом src...");
+ 
+        const targetImage = document.querySelector(
+            'img[src="https://service.ag.mos.ru/static-map-layer/202512-2ObvWr3gxtnsgUB6fEO9UB1tr6eOoj7KzXhB6SLx.png"]'
+        );
+ 
+        if (!targetImage) {
+            throw new Error("Изображение с указанным src не найдено!");
+        }
+ 
+        targetImage.click();
+        console.log("Изображение найдено и по нему выполнен клик!");
+ 
+        setTimeout(() => {
+            if (isCaptchaVisible()) {
+                waitForCaptchaToDisappear(findAndClick);
+                return;
+            }
+ 
+            try {
+                console.log("Ищем родительский элемент ag-map-winter2026-rating-stars...");
+ 
+                const parentElement = document.querySelector('ag-map-winter2026-rating-stars');
+ 
+                if (!parentElement) {
+                    throw new Error("Родительский элемент ag-map-winter2026-rating-stars не найден!");
+                }
+ 
+                const buttons = parentElement.querySelectorAll('button.grade');
+ 
+                if (buttons.length === 0) {
+                    throw new Error("Кнопки grade не найдены!");
+                }
+ 
+                const randomButton = buttons[Math.floor(Math.random() * buttons.length)];
+                randomButton.click();
+                console.log("Клик выполнен по кнопке!");
+ 
+                setTimeout(() => {
+                    console.log("Перезапуск скрипта...");
+                    waitAndRestart();
+                }, 100);
+ 
+            } catch (error) {
+                console.error(error.message);
+                console.log("Ошибка. Перезапуск скрипта...");
+                setTimeout(waitAndRestart, 100);
+            }
+        }, 4770);
+ 
+    } catch (error) {
+        console.error(error.message);
+        console.log("Ошибка. Перезапуск скрипта...");
+        setTimeout(waitAndRestart, 100);
+    }
+}
+ 
+// ===== ПЕРЕЗАПУСК =====
+function waitAndRestart() {
+    if (isCaptchaVisible()) {
+        waitForCaptchaToDisappear(waitAndRestart);
+        return;
+    }
+ 
+    setTimeout(() => {
+        clickCenter();
+        setTimeout(findAndClick, 200);
+    }, 100);
+}
+ 
+// ===== СТАРТ =====
+waitForCaptchaToDisappear(waitAndRestart);

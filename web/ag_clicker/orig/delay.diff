@@ -1,0 +1,11 @@
+--- /work/git/testings/web/ag_clicker/w9KkfDrc.txt
++++ /work/git/testings/web/ag_clicker/w9KkfDrc-delayed.txt
+@@ -98,7 +98,7 @@
+                 console.log("Ошибка. Перезапуск скрипта...");
+                 setTimeout(waitAndRestart, 100);
+             }
+-        }, 900);
++        }, 4770);
+ 
+     } catch (error) {
+         console.error(error.message);
