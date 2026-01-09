@@ -100,7 +100,7 @@ function findAndClick() {
                 console.log("Ошибка. Перезапуск скрипта...");
                 setTimeout(waitAndRestart, 1000);
             }
-        }, 4770);
+        }, 3770);
 // 4770
 
     } catch (error) {
