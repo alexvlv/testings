@@ -91,7 +91,7 @@ function findAndClick() {
                 setTimeout(() => {
                     console.log("Перезапуск скрипта...");
                     waitAndRestart();
-                }, 100);
+                }, 1000);
 
             } catch (error) {
                 console.error(error.message);
@@ -117,8 +117,8 @@ function waitAndRestart() {
 
     setTimeout(() => {
         clickCenter();
-        setTimeout(findAndClick, 200);
-    }, 100);
+        setTimeout(findAndClick, 300);
+    }, 200);
 }
 
 // ===== СТАРТ =====
