@@ -103,7 +103,7 @@ function findAndClick() {
     } catch (error) {
         console.error(error.message);
         console.log("Ошибка. Перезапуск скрипта...");
-        setTimeout(waitAndRestart, 100);
+        setTimeout(waitAndRestart, 1000);
     }
 }
 
