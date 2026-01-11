@@ -1,10 +1,14 @@
-#!/bin/sh
-
+#!/bin/bash
 
 #basedir="$(dirname "$(readlink -f "$0")")"
 #cd "${BASEDIR}" || exit 1
 
-config_template="cfg.tmpl"
+config_parameters=".config_vars"
+[ -s "$config_parameters" ] && . "$config_parameters"
+[ -n "$config_param_dir" ] || config_param_dir="/mnt/ext/Yadisk"
+
+config_template="config.tmpl"
+config_out="config.cfg"
 include_file="include.txt"
 yadsk_lnk=".yadsk"
 yadsk_ls=".yadir.txt"
@@ -70,11 +74,22 @@ get_exclude_dirs() {
 # Clean: trim, remove empty lines
 sed -i '/^[[:space:]]*$/d; s/^[[:space:]]*//; s/[[:space:]]*$//' "$include_file"
 sort -o "$include_file" "$include_file"
-echo "Yandex dirs list: \n=========== [begin]=========="
+echo -e "Yandex dirs list: \n=========== [begin]=========="
 cat "${yadsk_ls}"
 echo "=========== [end]=========="
 
 get_exclude_dirs "${include_file}" "${yadsk_ls}"
 
-echo "Excluded: [$exclude_dirs]"
+#echo "Excluded: [$exclude_dirs]"
 
+[ -e $config_template ] && eval "cat <<EOF > $config_out
+$(<$config_template)
+EOF" 2> /dev/null
+
+[ -e $config_out ] && {
+	echo -e "\nConfig generated:\n#=========== [begin]=========="
+	cat $config_out 2>/dev/null
+	echo "#=========== [end]=========="
+}
+
+# iid must be in /home/user/.config/yandex-disk !
