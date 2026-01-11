@@ -1,13 +1,21 @@
 #!/bin/sh
 
-export LC_ALL=C.UTF-8
 
 #basedir="$(dirname "$(readlink -f "$0")")"
 #cd "${BASEDIR}" || exit 1
 
 config_template="cfg.tmpl"
 include_file="include.txt"
-yandex_dir="/mnt/ext/Yadisk"
+yadsk_lnk=".yadsk"
+
+
+export LC_ALL=C.UTF-8
+
+
+#yandex_dir="/mnt/ext/Yadisk"
+yadsk_dir=$(readlink -f ${yadsk_lnk} 2>/dev/null)
+[ -d ${yadsk_dir} ] || { echo "ERROR: Yandex dir not available"; exit 1; }
+
 
 get_exclude_dirs() {
 	target_dir="$1"
@@ -62,7 +70,9 @@ get_exclude_dirs() {
 sed -i '/^[[:space:]]*$/d; s/^[[:space:]]*//; s/[[:space:]]*$//' "$include_file"
 sort -o "$include_file" "$include_file"
 
-get_exclude_dirs "${yandex_dir}" "${include_file}"
+echo "Processing [${yadsk_dir}] ..."
 
-echo [$exclude_dirs]
+get_exclude_dirs "${yadsk_dir}" "${include_file}"
+
+echo "Excluded: [$exclude_dirs]"
 
