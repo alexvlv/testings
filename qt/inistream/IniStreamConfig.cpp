@@ -1,4 +1,5 @@
-                                                                                                                                   #include "IniStreamConfig.h"
+#include "IniStreamConfig.h"
+#include <QDebug>
 
 void IniStreamConfig::parse(const QByteArray &chunk)
 {
@@ -18,23 +19,46 @@ void IniStreamConfig::parse(const QByteArray &chunk)
 		}
 
 		int eq = s.indexOf('=');
-		if (eq < 0) continue; // skip lines without '='
-
-		QString key = s.left(eq).trimmed();
-		QString val = s.mid(eq + 1).trimmed();
+		if (eq < 0)
+			continue; // skip lines without '='
 
 		if (currentSection.isEmpty())
 			continue; // skip lines before first section
 
+		QString key = s.left(eq).trimmed();
+		QString val = s.mid(eq + 1).trimmed();
+
+		auto &section = m_data[currentSection];
+
 		if (val.isEmpty()) {
 			// Empty value signals key deletion
-			m_data[currentSection].remove(key);
-		} else {
-			// Remove surrounding quotes if present
-			if (val.size() >= 2 && val.startsWith('"') && val.endsWith('"'))
-				val = val.mid(1, val.size() - 2);
+			if (section.contains(key)) {
+				section.remove(key);
+				qDebug().noquote()
+					<< "[INI] removed"
+					<< "[" << currentSection << "]"
+					<< key;
+			}
+			continue;
+		}
 
-			m_data[currentSection][key] = val;
+		// Remove surrounding quotes if present
+		if (val.size() >= 2 && val.startsWith('"') && val.endsWith('"'))
+			val = val.mid(1, val.size() - 2);
+
+		auto it = section.find(key);
+		if (it == section.end()) {
+			section.insert(key, val);
+			qDebug().noquote()
+				<< "[INI] added"
+				<< "[" << currentSection << "]"
+				<< key << "=" << val;
+		} else if (it.value() != val) {
+			it.value() = val;
+			qDebug().noquote()
+				<< "[INI] updated"
+				<< "[" << currentSection << "]"
+				<< key << "=" << val;
 		}
 	}
 }
@@ -76,7 +100,8 @@ bool IniStreamConfig::getBool(const QString &section, const QString &key, bool d
 bool IniStreamConfig::hasKey(const QString &section, const QString &key) const
 {
 	auto sit = m_data.find(section);
-	if (sit == m_data.end()) return false;
+	if (sit == m_data.end())
+		return false;
 	return sit->contains(key);
 }
 
@@ -84,6 +109,7 @@ bool IniStreamConfig::hasKey(const QString &section, const QString &key) const
 QStringList IniStreamConfig::keys(const QString &section) const
 {
 	auto sit = m_data.find(section);
-	if (sit == m_data.end()) return {};
+	if (sit == m_data.end())
+		return {};
 	return sit->keys();
 }

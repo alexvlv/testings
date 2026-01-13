@@ -32,6 +32,10 @@ URL=
 	for (const QString &key : cfg.keys("cam0")) {
 		qDebug() << key << "->" << cfg.get("cam0", key).toString();
 	}
+	cfg.parse(R"(
+[cam0]
+Path=C:\Da_ta
+)");
 
 	return 0;
 }
