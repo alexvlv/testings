@@ -1,49 +1,78 @@
 #!/bin/sh
-# 2026-01-17T12:20Z
+
+# usbdev-filter.sh (compact mode)
+# Sat 17 Jan 2026 12:41:24 +03
 
 vidpid=""
+compact=0
 
-while getopts "d:" opt; do
+while getopts "d:c" opt; do
 	case "$opt" in
 		d) vidpid="$OPTARG" ;;
+		c) compact=1 ;;
 	esac
 done
 
-usb-devices | awk -v vidpid="$vidpid" '
+usb-devices | awk -v vidpid="$vidpid" -v compact="$compact" '
 BEGIN {
-	block = ""
-	hit = 0
+	block=""
+	hit=0
 }
 
 function flush() {
-	if (block == "")
-		return
+	if (block=="") return
 
-	if (vidpid == "" || hit)
-		printf "%s\n", block
+	if (vidpid=="" || hit) {
+		if (compact==1) {
+			bus=""; dev=""; drv=""; spd=""; port=""; vid=""; pid=""
+			n = split(block, lines, "\n")
+			for (j=1;j<=n;j++) {
+				l = lines[j]
 
-	block = ""
-	hit = 0
+				if (l ~ /^T:/) {
+					if (match(l,/Bus=([0-9]+)/)) bus=substr(l,RSTART+4,RLENGTH-4)
+					if (match(l,/Dev#=[ ]*([0-9]+)/)) dev=substr(l,RSTART+6,RLENGTH-6)
+					if (match(l,/Spd=([0-9]+)/)) spd=substr(l,RSTART+4,RLENGTH-4)
+				}
+
+				if (l ~ /^P:/) {
+					if (match(l,/Vendor=([0-9a-f]+)/)) vid=substr(l,RSTART+7,RLENGTH-7)
+					if (match(l,/ProdID=([0-9a-f]+)/)) pid=substr(l,RSTART+7,RLENGTH-7)
+				}
+
+				if (l ~ /^I:/ && l ~ /Driver=/) {
+					if (match(l,/Driver=([a-z0-9_]+)/)) drv=substr(l,RSTART+7,RLENGTH-7)
+					if (match(l,/Port=([0-9]+)/)) port=substr(l,RSTART+5,RLENGTH-5)
+				}
+			}
+
+			line = "Bus " bus " Dev " dev " " vid ":" pid " " drv " " spd "M " port
+			printf "%s\n", line
+		} else {
+			printf "%s\n", block
+		}
+	}
+
+	block=""
+	hit=0
 }
 
+
 {
-	if ($0 == "") {
+	if ($0=="") {
 		flush()
 		next
 	}
 
 	block = block $0 "\n"
 
-	if (vidpid != "" && $0 ~ /^P:/) {
-		split(vidpid, a, ":")
+	if (vidpid!="" && $0 ~ /^P:/) {
+		split(vidpid,a,":")
 		line = tolower($0)
-		if (line ~ "vendor=" tolower(a[1]) &&
-		    line ~ "prodid=" tolower(a[2]))
-			hit = 1
+		if (line ~ "vendor=" tolower(a[1]) && line ~ "prodid=" tolower(a[2]))
+			hit=1
 	}
 }
 
-END {
-	flush()
-}
+END { flush() }
 '
