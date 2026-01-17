@@ -5,11 +5,13 @@
 
 vidpid=""
 compact=0
+tree=0
 
-while getopts "d:c" opt; do
+while getopts "d:ct" opt; do
 	case "$opt" in
 		d) vidpid="$OPTARG" ;;
 		c) compact=1 ;;
+		t) tree=1 ;;
 	esac
 done
 
