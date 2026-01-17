@@ -1,7 +1,8 @@
 #!/bin/sh
+
 # usbdev-filter.sh
 # Sat 17 Jan 2026 14:15 +03
-# mawk-safe, supports: -d <vid:pid> -c -t
+# $Id$
 
 vidpid=""
 compact=0
@@ -14,6 +15,14 @@ while getopts "d:ct" opt; do
 		t) tree=1 ;;
 	esac
 done
+
+# read VID:PID from stdin if not set by -d
+if [ -z "$vidpid" ]; then
+	if [ ! -t 0 ]; then
+		read -r line
+		vidpid="$line"
+	fi
+fi
 
 usb-devices | awk -v vidpid="$vidpid" -v compact="$compact" -v tree="$tree" '
 BEGIN { block=""; hit=0 }
