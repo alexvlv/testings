@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # usbdev-filter.sh (compact mode)
-# Sat 17 Jan 2026 12:41:24 +03
+# Sat 17 Jan 2026 13:00:17 +03
 
 vidpid=""
 compact=0
@@ -34,6 +34,7 @@ if (vidpid=="" || hit) {
             if (match(l,/Bus=([0-9]+)/)) bus=substr(l,RSTART+4,RLENGTH-4)
             if (match(l,/Dev#=[ ]*([0-9]+)/)) dev=substr(l,RSTART+6,RLENGTH-6)
             if (match(l,/Spd=([0-9]+)/)) spd=substr(l,RSTART+4,RLENGTH-4)
+            if (match(l,/Port=([0-9]+)/)) port=substr(l,RSTART+5,RLENGTH-5)
         }
         if (l ~ /^P:/) {
             if (match(l,/Vendor=([0-9a-f]+)/)) vid=substr(l,RSTART+7,RLENGTH-7)
