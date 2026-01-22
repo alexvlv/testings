@@ -42,3 +42,13 @@ public:
 #undef CAM_COMMANDS_LIST
 
 #endif // CAM_COMMANDS_H
+
+#if 0
+enum class Type : int { A, B, C, Count };
+using U = std::underlying_type_t<Type>;
+U n = static_cast<U>(Type::Count);
+for (U i = 0; i < static_cast<U>(Type::Count); ++i) {
+    Type t = static_cast<Type>(i);
+    // ...
+    }
+endif #
