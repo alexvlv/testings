@@ -14,7 +14,7 @@ void IniStreamConfig::parse(const QByteArray &chunk)
 
 		// Section header
 		if (s.startsWith('[') && s.endsWith(']')) {
-			currentSection = s.mid(1, s.size() - 2).trimmed();
+			currentSection = normalize(s.mid(1, s.size() - 2).trimmed());
 			continue;
 		}
 
@@ -25,7 +25,7 @@ void IniStreamConfig::parse(const QByteArray &chunk)
 		if (currentSection.isEmpty())
 			continue; // skip lines before first section
 
-		QString key = s.left(eq).trimmed();
+		QString key = normalize(s.left(eq).trimmed());
 		QString val = s.mid(eq + 1).trimmed();
 
 		auto &section = m_data[currentSection];
@@ -65,7 +65,7 @@ void IniStreamConfig::parse(const QByteArray &chunk)
 
 QVariant IniStreamConfig::get(const QString &section, const QString &key, const QVariant &def) const
 {
-	auto sit = m_data.find(section);
+	auto sit = m_data.find(normalize(section));
 	if (sit == m_data.end())
 		return def;
 
@@ -99,17 +99,31 @@ bool IniStreamConfig::getBool(const QString &section, const QString &key, bool d
 
 bool IniStreamConfig::hasKey(const QString &section, const QString &key) const
 {
-	auto sit = m_data.find(section);
+	auto sit = m_data.find(normalize(section));
 	if (sit == m_data.end())
 		return false;
 	return sit->contains(key);
 }
 
-// Return all keys of a section, empty list if section not present
+bool IniStreamConfig::hasSection(const QString &section) const
+{
+	return m_data.contains(normalize(section));
+}
+
 QStringList IniStreamConfig::keys(const QString &section) const
 {
-	auto sit = m_data.find(section);
+	auto sit = m_data.find(normalize(section));
 	if (sit == m_data.end())
 		return {};
 	return sit->keys();
+}
+
+QStringList IniStreamConfig::sections(const QString &prefix) const
+{
+	QStringList result;
+	for (auto it = m_data.constBegin(); it != m_data.constEnd(); ++it) {
+		if (prefix.isEmpty() || it.key().startsWith(prefix))
+			result.append(it.key());
+	}
+	return result;
 }

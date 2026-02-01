@@ -1,4 +1,4 @@
-                                                                                                                                  #pragma once
+#pragma once
 
 #include <QString>
 #include <QMap>
@@ -21,12 +21,15 @@ public:
 	double getDouble(const QString &section, const QString &key, double def = 0.0) const;
 	bool getBool(const QString &section, const QString &key, bool def = false) const;
 
-	// Check if key exists
 	bool hasKey(const QString &section, const QString &key) const;
+	bool hasSection(const QString &section) const;
 
-	// Get all keys of a section
 	QStringList keys(const QString &section) const;
+	QStringList sections(const QString &prefix = QString()) const;
 
 private:
+	static inline QString normalize(const QString &s) {
+		return s.toLower();
+	}
 	QMap<QString, QMap<QString, QVariant>> m_data;
 };
