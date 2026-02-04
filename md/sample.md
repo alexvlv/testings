@@ -1,3 +1,4 @@
+
 # Markdown Rendering Test Document
 
 ## 1. Paragraphs and Soft Line Breaks
@@ -126,3 +127,11 @@ date: 2026-02-03
 ---
 
 End of document.
+
+This document is called {{title}} and was written by {{author}} on {{date}}.
+Git rev.: {{gitrev}}
+
+```
+pandoc sample.md -o .output.rtf --standalone --reference-doc=reference.rtf  -M date="$(date '+%Y-%m-%d')" -M gitrev="$GIT_REV_STR --lua-filter=replace-meta.lua
+```
+
