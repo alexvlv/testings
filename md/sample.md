@@ -1,4 +1,3 @@
-
 # Markdown Rendering Test Document
 
 ## 1. Paragraphs and Soft Line Breaks
@@ -121,12 +120,16 @@ nisi ut aliquip ex ea commodo consequat.
 ## 12. Metadata (Pandoc-compatible)
 
 ---
-title: "Markdown Test"
+title: "Markdown Test (Bottom line)"
 author: "Alex"
 date: 2026-02-03
 ---
 
 End of document.
+
+This document is called $TITLE and was written by $AUTHOR on $DATE.
+Git rev.: $GITREV
+
 
 This document is called {{title}} and was written by {{author}} on {{date}}.
 Git rev.: {{gitrev}}
