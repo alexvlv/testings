@@ -56,6 +56,9 @@ pandoc sample.md -o output.rtf --standalone -M date="$(date '+%Y-%m-%d')"
 --template работает только с .docx, .tex, .html, .odt (т.е. текстовыми шаблонами).
 
 ```
-pandoc sample.md -o output.rtf --standalone  -M date="$(date '+%Y-%m-%d')"
+pandoc sample.md -o .output.rtf --standalone --reference-doc=reference.rtf  -M date="$(date '+%Y-%m-%d')"
 pandoc sample.md -o .output.rtf --standalone --reference-doc=reference.rtf  -M date="$(date '+%Y-%m-%d')" -M gitrev="$GIT_REV_STR --lua-filter=replace-meta.lua
+```
+```
+pandoc sample.md -o .output.docx --standalone --reference-doc=reference_techdoc.docx
 ```
