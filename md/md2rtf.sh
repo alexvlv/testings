@@ -32,8 +32,10 @@ get_git_rev .
 echo "[GIT rev.: ${GIT_REV}${GIT_MODIFIED} on ${GIT_BRANCH} at ${GIT_DATE} from ${GIT_ORIGIN}]"
 
 outfname=${fname%.*}.rtf
-echo "[ ${fname} => ${outfname} ]"
+pdffname=${fname%.*}.pdf
+echo "Converting:  ${fname} => ${outfname} => ${pdffname}"
 envsubst < "${fname}" | sed 's|<!-- PAGE BREAK -->|```{=rtf}\n\\page\n```|' | \
 pandoc -o ${outfname} --standalone --reference-doc=/usr/local/etc/pandoc_reference.rtf && \
 sed -i 's/{\\rtf1/{\\rtf1\\paperw11906\\paperh16838\\margl567\\margr567\\margt567\\margb567/' ${outfname} && \
 libreoffice --headless --convert-to pdf ${outfname}
+[ -f "$pdffname" ] && xdg-open "$pdffname" 2>/dev/null
