@@ -133,6 +133,9 @@ date: 2026-02-03
 
 End of document.
 
+GIT Rev.: ${GIT_BRANCH} ${GIT_REV}${GIT_MODIFIED} at ${GIT_DATE}
+Converted by ${LOGNAME} at ${DATE} on ${HOSTNAME}
+
 This document is called $TITLE and was written by $AUTHOR on $DATE.
 Git rev.: $GITREV
 
