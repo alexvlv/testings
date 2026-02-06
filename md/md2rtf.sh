@@ -32,3 +32,4 @@ echo "[GIT rev.: ${GIT_REV}${GIT_MODIFIED} on ${GIT_BRANCH} at ${GIT_DATE} from 
 outfname=${fname%.*}.rtf
 echo "[ ${fname} => ${outfname} ]"
 envsubst < "${fname}" | pandoc -o ${outfname} --standalone --reference-doc=/usr/local/etc/pandoc_reference.rtf
+sed -i 's/{\\rtf1/{\\rtf1\\paperw11906\\paperh16838\\margl567\\margr567\\margt567\\margb567/' ${outfname}
