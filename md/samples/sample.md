@@ -123,6 +123,33 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit,
 
 ---
 
+123
+
+---
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit,  
+
+---
+
+LAST LINE BEFORE PAGE BREAK  
+<!-- PAGE BREAK -->
+FIRST  LINE AFTER PAGE BREAK  
+
+- *Italic*
+- **Bold**
+- ***Bold Italic***
+- `inline code`
+- ~~Strikethrough~~
+
+
+---
+
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit,  
+
+---
+
+
 ## 12. Metadata (Pandoc-compatible)
 
 ---
