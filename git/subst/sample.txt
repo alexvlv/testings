@@ -1,0 +1,4 @@
+# GIT Rev.: $Format:%cd %cn %h %D$
+# Project Version: $Format:%h$
+# Last Commit Date: $Format:%ci$
+

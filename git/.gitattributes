@@ -1,0 +1,7 @@
+* text=auto
+
+*.md ident
+*.md export-subst
+
+*.txt export-subst
+*.sh export-subst
