@@ -1,6 +1,6 @@
 #! /bin/sh
 
-# $Id$
+# GIT Rev.: $Format:%cd %cn %h %D$
 
 serdev="/dev/serial/relay"
 n="$1"
