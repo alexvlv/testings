@@ -11,3 +11,5 @@
 *.mk ident
 *.conf ident
 Makefile ident
+* export-subst
+* ident
