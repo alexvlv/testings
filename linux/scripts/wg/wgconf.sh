@@ -1,6 +1,7 @@
 #! /bin/bash
 
 # GIT Rev.: $Format:%cd %cn %h %D$
+# $Id$
 
 b=${PWD##*/}; export number=${b%%_*}; export name=${b#*_}
 
