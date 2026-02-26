@@ -18,7 +18,8 @@ to_raw_h264() {
 #to_raw_h264 
 
 
-#-g 25 -keyint_min 25 -sc_threshold 0 - fixed GOP 25 (not nrcessary for DaVinci decoder)
+# -g 25 -keyint_min 25 -sc_threshold 0 - fixed GOP 25 (not necessary for DaVinci decoder)
+# -x264-params "b-adapt=0:open-gop=0"   - strict I/P-only stream with fixed GOP and monotonic timestamps, 
 
 to_ts() {
 	outname="${input%.*}.ts"
@@ -30,6 +31,7 @@ to_ts() {
 		-c:v libx264 -profile:v high \
 		-bf 0 \
 		-g 25 -keyint_min 25 -sc_threshold 0 \
+		-x264-params "b-adapt=0:open-gop=0" \
 		-pix_fmt yuv420p \
 		-f mpegts \
 		-streamid 0:0x1011 \
