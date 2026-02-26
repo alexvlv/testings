@@ -27,7 +27,7 @@ to_ts() {
 
 	ffmpeg -i "$input" \
 		-map 0:v:0 -an -sn \
-		-vf "scale=720:576" \
+		-vf "scale=704:576" \
 		-c:v libx264 -profile:v high \
 		-bf 0 \
 		-g 25 -keyint_min 25 -sc_threshold 0 \
@@ -40,3 +40,5 @@ to_ts() {
 to_ts
 
 # DvDecad - OK
+# 704:576 - OK
+
