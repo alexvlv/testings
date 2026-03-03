@@ -1,7 +1,6 @@
 #! /bin/bash
 
 # GIT Rev.: $Format:%cd %cn %h %D$
-# $Id$
 
 b=${PWD##*/}; export number=${b%%_*}; export name=${b#*_}
 
@@ -33,6 +32,7 @@ for f in $confdir/*.conf; do
 	echo "=== Start of $cfgname ==="
 	cat $outdir/$outname
 	echo "=== End of $cfgname ==="
+	qrencode -t ansiutf8 < $outdir/$outname >${outdir}/${outname%.*}.qr
 	line=$(grep -o 'Address = 10\.[0-9]\{1,3\}\.0\.\${num}' $f)
 	eval "line=\"$line\""
 	address=$(printf "%s" "$line" | grep -o '10\.[0-9]\{1,3\}\.0\.[0-9]\{1,3\}')
