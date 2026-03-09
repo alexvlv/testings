@@ -4,7 +4,7 @@
 ``
 [ "$1" != "" ] && outdir="$1"|| outdir=.
 
-psw_file="/var/run/user/$UID/psw"
+psw_file="$XDG_RUNTIME_DIR/psw"
 [ -s "$psw_file" ] || {
   echo "Password must be unlocked first!"
   psw-unlock

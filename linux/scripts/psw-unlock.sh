@@ -4,11 +4,11 @@
 
 set -e
 
-DST=/var/run/user/$UID/psw
+DST="$XDG_RUNTIME_DIR/psw"
 
 [ -s "$DST" ] && {
   echo "Already stored."
-  [[ "$1" == "c"* ]] && { 
+  [[ "$1" == "c"* ]] && {
     rm "$DST" &&  echo Cleared!
   }
   exit 0
@@ -28,5 +28,5 @@ printf "Password: \"%s\"\n" "$password"
 read -p "<Enter to hide>"
 printf '\033[?1049l'
 
-# \033[K = erase line. 
+# \033[K = erase line.
 #printf "\r\033[K"
