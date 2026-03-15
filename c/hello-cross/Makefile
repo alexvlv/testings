@@ -69,16 +69,16 @@ endef
 
 .PHONY: $(ARCHES) $(ARCHES:%=%/%)
 $(ARCHES:%=%/%):
-	$(QUIET) $(MAKE) -C $(MAKEFILE_DIR) \
+	$(QUIET) $(MAKE) $(MAKEFLAGS) -C $(MAKEFILE_DIR) \
 		O=$(BUILDDIR) \
 		$(word 2,$(subst /, ,$@)) \
 		ARCH=$(word 1,$(subst /, ,$@))
 
 ifeq ($(ARCH),)
 $(ARCHES):
-	$(MAKE) $@/all
+	$(QUIET) $(MAKE) $(MAKEFLAGS) $@/all
 %:
-	$(MAKE) $(DEFAULT_ARCH)/$@
+	$(QUIET) $(MAKE) $(MAKEFLAGS) $(DEFAULT_ARCH)/$@
 else
 all: install
 
@@ -101,7 +101,7 @@ $(BINARY): $(BINARY)-unstripped
 	@echo Strip `basename $@` from $^ ...
 	$(QUIET) $(STRIP) -o $@ $^
 
-$(BINARY)-unstripped: git $(obj_dir) $(OBJECTS)
+$(BINARY)-unstripped: .git.h $(obj_dir) $(OBJECTS)
 	@echo Linking `basename $@` from $^...
 	$(QUIET)  $(CPP) $(OBJECTS)  $(LDFLAGS) $(LIBS) -o $@ 
 	
