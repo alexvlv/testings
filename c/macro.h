@@ -26,8 +26,16 @@ $Id$
 #define SIGN(X) ((X > 0) - (X < 0))
 #endif
 
+#ifndef MATH_DIV
+#define MATH_DIV(a, b) (((a)+(a)%(b))/(b))
+#endif
+
+#ifndef DIV_ROUND_CLOSEST
+#define DIV_ROUND_CLOSEST(n, d) ((((n) < 0) == ((d) < 0)) ? (((n) + (d)/2)/(d)) : (((n) - (d)/2)/(d)))
+#endif
+
 #ifndef CEIL_DIV
-#define CEIL_DIV(a, b) (((a)+(a)%(b))/(b))
+#define CEIL_DIV(a, b) (((a) + (b) - 1) / (b))
 #endif
 
 #ifndef ALIGN_OF
