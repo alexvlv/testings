@@ -1,18 +1,15 @@
 # $Id$
-
-ARCH := aarch64
+ARCHES := arm x86
+DEFAULT_ARCH := arm
 
 export MAKEFILE_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 PROJECT := $(notdir $(patsubst %/,%,$(MAKEFILE_DIR)))
 
-SUFFIX := -$(ARCH)
-ifeq ($(ARCH),aarch64)
-	COMMAND_PREFIX := aarch64-linux-gnu-
-else	
+ifeq ($(ARCH),arm)
+	COMMAND_PREFIX := arm-none-linux-gnueabi-
+else
+	SUFFIX := -$(ARCH)
 	EXT := $(SUFFIX)
-endif
-ifeq ($(ARCH),)
-	$(error ARCH not set)
 endif
 
 O := $(PWD)
@@ -39,7 +36,7 @@ export STRIP := $(COMMAND_PREFIX)strip
 source_dirs := $(MAKEFILE_DIR) 
 include_dirs := $(BUILDDIR) $(source_dirs) 
 
-obj_dir := $(BUILDDIR)/obj$(SUFFIX)
+obj_dir := $(BUILDDIR)/obj-$(ARCH)
 
 CFLAGS:= -pipe -Wall -ggdb
 
@@ -70,25 +67,35 @@ echo "GIT $REV"; \
 echo "#ifndef VERSION \n#define VERSION \"$REV\" \n#endif" > $GITREVFILE;
 endef
 
+.PHONY: $(ARCHES) $(ARCHES:%=%/%)
+$(ARCHES:%=%/%):
+	$(QUIET) $(MAKE) -C $(MAKEFILE_DIR) \
+		O=$(BUILDDIR) \
+		$(word 2,$(subst /, ,$@)) \
+		ARCH=$(word 1,$(subst /, ,$@))
 
-default: aarch64
-
-.PHONY: aarch64
-aarch64:
-	$(QUIET) $(MAKE) -C $(MAKEFILE_DIR) O=$(BUILDDIR) install ARCH=aarch64
-
-.PHONY: x86
-x86:
-	$(QUIET) $(MAKE) -f $(MAKEFILE_DIR)/Makefile O=$(BUILDDIR) install ARCH=x86
-
-.PHONY: clean$(SUFFIX)
-clean-$(SUFFIX):
-	$(MAKE) clean ARCH=$(ARCH)
+ifeq ($(ARCH),)
+$(ARCHES):
+	$(MAKE) $@/all
+%:
+	$(MAKE) $(DEFAULT_ARCH)/$@
+else
+all: install
 
 .PHONY: install
 install: $(BINARY)
 	@echo Install $^ binaries to $(INSTALLDIR)
-	$(QUIET) install -d $(INSTALLDIR); install $^ $(INSTALLDIR)
+	$(QUIET) install -Dm755 $^ -t $(INSTALLDIR)
+
+.PHONY: strip
+strip: $(BINARY)
+
+.PHONY: clean
+clean:
+	$(QUIET) echo Clean $(ARCH) ...
+	$(QUIET) rm -f $(BUILDDIR)/$(BINARY) $(BUILDDIR)/$(PROJECT)-* $(BUILDDIR)/.git.h; rm -f -r $(BUILDDIR)/obj-$(ARCH);
+
+endif
 
 $(BINARY): $(BINARY)-unstripped 
 	@echo Strip `basename $@` from $^ ...
@@ -106,8 +113,8 @@ git:
 .git.h:
 	$(QUIET) $(value gitrev)
 
-.PHONY: clean
-clean:
+.PHONY: distclean
+distclean:
 	@echo Clean all...
 	$(QUIET) rm -f $(BUILDDIR)/$(PROJECT) $(BUILDDIR)/$(PROJECT)-* $(BUILDDIR)/.git.h; rm -f -r $(BUILDDIR)/obj-*;
 
@@ -127,4 +134,3 @@ $(obj_dir)/%.o:%.cpp
 $(obj_dir)/%.o:%.bin 
 	@echo Create blob object $*.o from $<..
 	$(QUIET) $(LD) -r -b binary $< -o $@
-
