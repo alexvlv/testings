@@ -63,7 +63,8 @@ class ExtractPid:
         flg = self.head[TS_HDR_ADAPT_FLD]
         if flg == 0b01:
             flst = self.head[TS_HDR_START_FLD]
-            ofst = 14 if flst else 0
+            # ToDo: PES header parser here!
+            ofst = 14 if flst else 0 # Dirty hack: skip PES header with PTS stamp
             #log.debug("Start {0}, offset {1}".format(flst, ofst))
             self.write(ofst)
         elif flg == 0b11:
