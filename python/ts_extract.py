@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # MPEG-TS raw stream extractor by PID
-# $Id$
+# GIT Rev.: $Format:%cd %cn %h %D$
 
 import argparse
 import logging
@@ -133,7 +133,7 @@ def main():
     parser.add_argument('-i', '--input', help='Input file [mpeg.ts]', default='mpeg.ts')
     parser.add_argument('-o', '--output', help='Output file')
     parser.add_argument('-l', '--loglevel', help='Log level [DEBUG]', default='DEBUG')
-    parser.add_argument('-v', '--version', action='version', version='%(prog)s GIT $Id$')
+    parser.add_argument('-v', '--version', action='version', version='%(prog)s GIT Rev.: $Format:%cd %cn %h %D$')
     args = parser.parse_args()
 
     logging.basicConfig(level=args.loglevel, format='%(message)s')
