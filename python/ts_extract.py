@@ -25,6 +25,7 @@ class ExtractPid:
         self.extracted_packets_cnt = 0
         self.bytes_cnt = 0
         self.continuity = -1
+        self.frame_size = 0
 
     def __call__(self, packet, offset):
         self.packet = packet
@@ -66,12 +67,18 @@ class ExtractPid:
             # ToDo: PES header parser here!
             ofst = 14 if flst else 0 # Dirty hack: skip PES header with PTS stamp
             #log.debug("Start {0}, offset {1}".format(flst, ofst))
+            if flst:
+                self.frame_size = 0
+            self.frame_size += TS_DATA_SZ - ofst
             self.write(ofst)
         elif flg == 0b11:
             payload_offset = 1 + self.packet[4]
             if payload_offset >= TS_DATA_SZ:
                 log.warning("Warning: bad packet at 0x{0:X}({0}): adaptation size: {1:02X}({1})".format(self.offset, self.packet[5],))
                 return
+            self.frame_size += TS_DATA_SZ - payload_offset;
+            log.debug("Frame size: {0} bytes".format(self.frame_size,))
+
             self.write(payload_offset)
             pass
 
