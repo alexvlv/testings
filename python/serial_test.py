@@ -73,6 +73,9 @@ def main():
         help="corrupt every Nth SIZE field")
     parser.add_argument("-R", "--repeat", action="store_true",
         help="repeat the first packet")
+    GIT_VERSION = '$Format:%cd %cn %h %D$'.replace('%', '%%')
+    parser.add_argument('-v', '--version', action='version',  version='%(prog)s GIT Rev.: ' + GIT_VERSION)
+
     args = parser.parse_args()
 
     if not 0 <= args.size <= MAX_DATA:

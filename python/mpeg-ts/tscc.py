@@ -66,7 +66,8 @@ def scan(filename, show_null):
 def main():
     parser = argparse.ArgumentParser(description="MPEG-TS continuity counter scanner")
     parser.add_argument("-n", "--null", action="store_true", help="show null packets (PID 0x1FFF)")
-    parser.add_argument('-v', '--version', action='version', version='%(prog)s GIT Rev.: $Format:%cd %cn %h %D$')
+    GIT_VERSION = '$Format:%cd %cn %h %D$'.replace('%', '%%')
+    parser.add_argument('-v', '--version', action='version',  version='%(prog)s GIT Rev.: ' + GIT_VERSION)
     parser.add_argument("file")
     args = parser.parse_args()
     print("OFFSET       DEC_OFFSET       PACKET       PID    CC      STATUS")

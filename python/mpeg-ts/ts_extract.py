@@ -141,7 +141,8 @@ def main():
     parser.add_argument('-i', '--input', help='Input file [mpeg.ts]', default='mpeg.ts')
     parser.add_argument('-o', '--output', help='Output file')
     parser.add_argument('-l', '--loglevel', help='Log level [DEBUG]', default='DEBUG')
-    parser.add_argument('-v', '--version', action='version', version='%(prog)s GIT Rev.: $Format:%cd %cn %h %D$')
+    GIT_VERSION = '$Format:%cd %cn %h %D$'.replace('%', '%%')
+    parser.add_argument('-v', '--version', action='version',  version='%(prog)s GIT Rev.: ' + GIT_VERSION)
     args = parser.parse_args()
 
     logging.basicConfig(level=args.loglevel, format='%(message)s')

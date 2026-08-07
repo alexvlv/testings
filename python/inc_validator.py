@@ -82,7 +82,8 @@ def validate(path):
 def main():
     parser = argparse.ArgumentParser(
         description="Validate incrementing uint16 LE stream")
-    parser.add_argument('-v', '--version', action='version', version='%(prog)s $Format:%%cd %%cn %%h %%D$')
+    GIT_VERSION = '$Format:%cd %cn %h %D$'.replace('%', '%%')
+    parser.add_argument('-v', '--version', action='version',  version='%(prog)s GIT Rev.: ' + GIT_VERSION)
     parser.add_argument("file")
     args = parser.parse_args()
     return validate(args.file)
