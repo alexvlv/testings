@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# GIT Rev.: $Format:%cd %cn %h %D$
 
 import argparse
 import binascii
@@ -9,7 +10,8 @@ import time
 
 SYNC = 0xD391DA26
 TYPE = 1
-MAX_DATA = 128
+#MAX_DATA = (512-0x78)
+MAX_DATA = 256
 
 def make_packet(data, bad_crc=False, bad_sync=False, bad_size=False):
     size = len(data) ^ 1 if bad_size else len(data)
