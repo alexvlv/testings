@@ -1,0 +1,23 @@
+# /etc/systemd/system/wgns@.service
+
+# GIT Rev.: $Format:%cd %cn %h %D$
+
+[Unit]
+Description=WireGuard in network namespace (%i)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+
+Environment="LOCAL_ADDR=localhost"
+Environment="REMOTE_ADDR=0.0.0.0"
+Environment="SSH_TARGET_PORT=22"    
+EnvironmentFile=-/etc/wgns/common.conf
+EnvironmentFile=-/etc/wgns/%i.conf
+
+ExecStart=/bin/bash -c 'echo TEST'
+
+[Install]
+WantedBy=multi-user.target
