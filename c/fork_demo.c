@@ -8,18 +8,21 @@
 
 int main()
 {
+	int value = 10;
+	int *i = &value;
 	char *p = malloc(100);
 	int fd = open("test", O_WRONLY | O_CREAT | O_TRUNC, 0644);
 
 	sprintf(p, "Hello");
 
-	printf("%s", p);
+	printf("%s-%d ", p, *i);
 	write(fd, p, strlen(p));
 
-	fork();
-
+	if(fork())	
+		(*i)++;
+	
 	sprintf(p, "World!");
-	printf("%s", p);
+	printf("%s-%d ", p, value);
 	write(fd, p, strlen(p));
 
 	free(p);
