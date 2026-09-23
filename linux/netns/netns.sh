@@ -86,35 +86,37 @@ netns_destroy() {
 }
 
 usage() {
-	echo "Usage: $0 <namespace> <network_id> {up|down}" >&2
+	echo "Usage:"
+	echo "  $0 <namespace> <network_id> {up|down}"
+	echo "  $0 <namespace> <command> [args...]"
 	exit 1
 }
 
-[ "$#" -eq 3 ] || usage
+[ "$#" -ge 2 ] || usage
 
 ns_name="$1"
-net_id="$2"
-action="$3"
 
-case "$net_id" in
-	[1-9]|[1-9][0-9]|[1-9][0-9][0-9])
+case "$3" in
+	up|down)
+		[ "$#" -eq 3 ] || usage
+		network_id="$2"
+		ns_net="10.200.$network_id.0"
+
+		case "$3" in
+			up)
+				netns_create "$ns_name" "$ns_net"
+				;;
+			down)
+				netns_destroy "$ns_name" "$ns_net"
+				;;
+		esac
 		;;
 	*)
-		echo "Invalid network id: $net_id" >&2
-		exit 1
+		shift
+		ip netns exec "$ns_name" runuser -u "$SUDO_USER" \
+			--preserve-environment -- "$@"
 		;;
 esac
 
-ns_net="10.200.$net_id.0"
+#  netns.sh inet  sudo wg-quick up /etc/wireguard/wgbf.conf
 
-case "$action" in
-	up)
-		netns_create "$ns_name" "$ns_net"
-		;;
-	down)
-		netns_destroy "$ns_name" "$ns_net"
-		;;
-	*)
-		usage
-		;;
-esac
