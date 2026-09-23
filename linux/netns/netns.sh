@@ -85,61 +85,65 @@ netns_destroy() {
 	#rm -rf "/etc/netns/$ns_name"
 }
 
+netns_up() {
+	local ns_name="$1"
+	local wg_config="$2"
+
+	ip netns exec "$ns_name" true 2>/dev/null && {
+		echo "Namespace already exists: $ns_name" >&2
+		return 1
+	}
+
+	local network_id
+	network_id=$(( $(ip netns list | wc -l) + 1 ))
+
+	local ns_net="10.200.$network_id.0"
+	local ns_host="10.200.$network_id.1"
+	local ns_ip="10.200.$network_id.2"
+
+	echo "Creating namespace: $ns_name"
+	echo "Network: $ns_net/30"
+
+	netns_create "$ns_name" "$ns_net"
+
+	[ -n "$wg_config" ] || return 0
+
+	ip netns exec "$ns_name" \
+		wg-quick up "/etc/wireguard/$wg_config.conf"
+}
+
+netns_down() {
+	local ns_name="$1"
+
+	ip netns exec "$ns_name" true 2>/dev/null || {
+		echo "Namespace does not exist: $ns_name" >&2
+		return 1
+	}
+
+	local ns_net
+	ns_net=$(ip netns exec "$ns_name" \
+		ip -4 addr show "veth-$ns_name" |
+		awk '/inet / {sub(/\/.*/, "", $2); split($2, a, "."); print a[1]"."a[2]"."a[3]".0"}')
+
+	netns_destroy "$ns_name" "$ns_net"
+}
+
 usage() {
 	echo "Usage:"
 	echo "  $0 <namespace> <network_id> {up|down}"
-	echo "  $0 <namespace> <command> [args...]"
 	exit 1
 }
 
-[ "$#" -ge 2 ] || usage
-
-ns_name="$1"
-
 case "$2" in
 	up)
-		# netns.sh <ns> up [wg]
 		[ "$#" -le 3 ] || usage
-
-		netns_create "$ns_name" "10.200.0.0" || exit $?
-
-		[ "$#" -eq 3 ] &&
-			ip netns exec "$ns_name" wg-quick up \
-				"/etc/wireguard/$3.conf"
+		netns_up "$1" "$3"
 		;;
-
 	down)
-		# netns.sh <ns> down
-		netns_destroy "$ns_name" "10.200.0.0"
+		[ "$#" -eq 2 ] || usage
+		netns_down "$1"
 		;;
-
 	*)
-		# netns.sh <ns> <network_id> up|down
-		case "$3" in
-			up|down)
-				[ "$#" -ge 3 ] && [ "$#" -le 4 ] || usage
-
-				network_id="$2"
-				ns_net="10.200.$network_id.0"
-
-				if [ "$3" = up ]; then
-					netns_create "$ns_name" "$ns_net" || exit $?
-
-					[ "$#" -eq 4 ] &&
-						ip netns exec "$ns_name" wg-quick up \
-							"/etc/wireguard/$4.conf"
-				else
-					netns_destroy "$ns_name" "$ns_net"
-				fi
-				;;
-			*)
-				# Run command inside namespace.
-				shift
-				ip netns exec "$ns_name" runuser -u "$SUDO_USER" \
-					--preserve-environment -- "$@"
-				;;
-		esac
+		usage
 		;;
 esac
-#  netns.sh inet  sudo wg-quick up /etc/wireguard/wgbf.conf
-
