@@ -7,7 +7,7 @@ set -e
 VPN_SERVERS="buh fmsk imsk"
 
 [ "$(id -u)" -ne 0 ] && {
-	echo "Restarting script as root ..."
+	#echo "Restarting script as root ..."
 	sudo "$0" "$@"
 	exit $?
 }
@@ -129,8 +129,25 @@ netns_down() {
 }
 
 usage() {
-	echo "Usage:"
-	echo "  $0 <namespace> <network_id> {up|down}"
+	cat <<EOF
+Usage:
+  $0 <namespace> up [<wgconfig>]
+  $0 <namespace> down
+  $0
+
+Without arguments, lists existing network namespaces.
+EOF
+}
+
+[ "$#" -eq 0 ] && {
+	ip netns list
+	exit 0
+}
+
+
+
+[ "$#" -ge 2 ] || {
+	usage
 	exit 1
 }
 
