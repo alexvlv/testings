@@ -2,6 +2,8 @@
 # MPEG-TS raw stream extractor by PID
 # GIT Rev.: $Format:%cd %cn %h %D$
 
+# sudo apt install python3-bitstruct
+
 import argparse
 import logging
 import mmap
