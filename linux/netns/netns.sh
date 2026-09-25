@@ -4,7 +4,7 @@
 
 set -e
 
-VPN_SERVERS="buh fmsk imsk"
+VPN_SERVERS="buh fmsk imsk nuker"
 
 [ "$(id -u)" -ne 0 ] && {
 	#echo "Restarting script as root ..."
@@ -25,15 +25,6 @@ ip netns exec "$ns_name" true 2>/dev/null && {
 	local ns_host="${ns_net%.*}.1"
 	local ns_ip="${ns_net%.*}.2"
 
-	local VPN_SERVER_IPS
-	for server in $VPN_SERVERS; do
-		ip=$(getent ahostsv4 "$server" | awk 'NR==1 {print $1}')
-		[ -n "$ip" ] || {
-			echo "Cannot resolve VPN server: $server" >&2
-			exit 1
-		}
-		VPN_SERVER_IPS="$VPN_SERVER_IPS $ip"
-	done
 
 	ip netns add "$ns_name"
 
@@ -46,6 +37,16 @@ ip netns exec "$ns_name" true 2>/dev/null && {
 	ip netns exec "$ns_name" ip link set lo up
 	ip netns exec "$ns_name" ip addr add "$ns_ip/30" dev "veth-$ns_name"
 	ip netns exec "$ns_name" ip link set "veth-$ns_name" up
+
+	local VPN_SERVER_IPS
+	for server in $VPN_SERVERS; do
+		ip=$(getent ahostsv4 "$server" | awk 'NR==1 {print $1}')
+		[ -n "$ip" ] || {
+			echo "Cannot resolve VPN server: $server" >&2
+			exit 1
+		}
+		VPN_SERVER_IPS="$VPN_SERVER_IPS $ip"
+	done
 
 	for ip in $VPN_SERVER_IPS; do
 		ip netns exec "$ns_name" ip route add "$ip/32" via "$ns_host" dev "veth-$ns_name"
@@ -108,8 +109,14 @@ netns_up() {
 
 	[ -n "$wg_config" ] || return 0
 
-	ip netns exec "$ns_name" \
-		wg-quick up "/etc/wireguard/$wg_config.conf"
+	#ip netns exec "$ns_name" wg-quick up "/etc/wireguard/$wg_config.conf"
+	local wg_src="/etc/wireguard/$wg_config.conf"
+	local wg_tmp="/run/netns-${ns_name}-${wg_config}.conf"
+	umask 077
+	sed '/^[[:space:]]*DNS[[:space:]]*=/d' "$wg_src" > "$wg_tmp" || return 1
+	ip netns exec "$ns_name" wg-quick up "$wg_tmp"
+	#cat $wg_tmp
+	rm -f "$wg_tmp"
 }
 
 netns_down() {
@@ -140,6 +147,7 @@ EOF
 }
 
 [ "$#" -eq 0 ] && {
+	#ip netns identify $$
 	ip netns list
 	exit 0
 }
