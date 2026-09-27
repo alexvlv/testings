@@ -62,17 +62,25 @@ ip netns exec "$ns_name" true 2>/dev/null && {
 		printf 'nameserver 1.1.1.1\nnameserver 8.8.8.8\n' > "/etc/netns/$ns_name/resolv.conf"
 }
 
-
 netns_destroy() {
 	local ns_name="$1"
 	local ns_net="$2"
 	local ns_host="${ns_net%.*}.1"
 
-	# Stop WireGuard if it is running in this namespace.
-	#ip netns exec "$ns_name" wg-quick down /etc/wireguard/wgbf.conf 2>/dev/null || true
+	# Stop WireGuard/AmneziaWG interfaces running in this namespace.
 	ip netns exec "$ns_name" wg show interfaces |
 	while read -r wg_if; do
-		ip netns exec "$ns_name" wg-quick down "/etc/wireguard/$wg_if.conf" 2>/dev/null || true
+		local wg_cmd="wg-quick"
+		local wg_src="/etc/wireguard/$wg_if.conf"
+
+		case "$wg_if" in
+			a*)
+				wg_cmd="awg-quick"
+				wg_src="/etc/amnezia/amneziawg/$wg_if.conf"
+				;;
+		esac
+
+		ip netns exec "$ns_name" "$wg_cmd" down "$wg_src" 2>/dev/null || true
 	done
 
 	# Remove host-side route and NAT.
@@ -109,14 +117,25 @@ netns_up() {
 
 	[ -n "$wg_config" ] || return 0
 
-	#ip netns exec "$ns_name" wg-quick up "/etc/wireguard/$wg_config.conf"
+	local wg_cmd="wg-quick"
 	local wg_src="/etc/wireguard/$wg_config.conf"
 	local wg_tmp="/run/netns-${ns_name}-${wg_config}.conf"
+	
+	case "$wg_config" in
+		a*)
+			wg_cmd="awg-quick"
+			#wg_src="/etc/amnezia/amneziawg/${wg_config#a}.conf"
+			wg_src="/etc/amnezia/amneziawg/$wg_config.conf"
+			;;
+	esac
+	
 	umask 077
 	sed '/^[[:space:]]*DNS[[:space:]]*=/d' "$wg_src" > "$wg_tmp" || return 1
-	ip netns exec "$ns_name" wg-quick up "$wg_tmp"
+	ip netns exec "$ns_name" "$wg_cmd" up "$wg_tmp"
+	local ret=$?
 	#cat $wg_tmp
 	rm -f "$wg_tmp"
+	return $ret
 }
 
 netns_down() {
@@ -172,3 +191,5 @@ case "$2" in
 		usage
 		;;
 esac
+
+#ip netns exec "$ns_name" wg-quick up "/etc/wireguard/$wg_config.conf"
