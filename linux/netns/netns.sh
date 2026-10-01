@@ -48,6 +48,20 @@ ns_require_present() {
 	}
 }
 
+# Terminate all processes in the namespace.
+ns_kill_processes() {
+	local ns_name="$1"
+	local pids
+
+	pids=$(ip netns pids "$ns_name")
+	[ -n "$pids" ] && kill $pids
+
+	sleep 1
+
+	pids=$(ip netns pids "$ns_name")
+	[ -n "$pids" ] && kill -KILL $pids
+}
+
 ns_init() {
 	local ns="$1"
 
@@ -298,6 +312,7 @@ net_destroy() {
 	local net="$3"
 
 	vpn_stop "$ns"
+	ns_kill_processes "$ns"
 
 	if [ -n "$iface" ]; then
 		net_physical_destroy "$iface" "$ns"
