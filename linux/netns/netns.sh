@@ -50,8 +50,8 @@ ip netns exec "$ns_name" true 2>/dev/null && {
 
 	for ip in $VPN_SERVER_IPS; do
 		ip netns exec "$ns_name" ip route add "$ip/32" via "$ns_host" dev "veth-$ns_name"
-	done	
-	
+	done
+
 	#ip route add "$ns_net/30" dev "veth-$ns_name-host"
 	ip route replace "$ns_net/30" dev "veth-$ns_name-host"
 
@@ -82,6 +82,16 @@ netns_destroy() {
 
 		ip netns exec "$ns_name" "$wg_cmd" down "$wg_src" 2>/dev/null || true
 	done
+
+	# Terminate all processes in the namespace.
+	local pids
+	pids=$(ip netns pids "$ns_name")
+
+	[ -n "$pids" ] && kill $pids
+	sleep 1
+
+	pids=$(ip netns pids "$ns_name")
+	[ -n "$pids" ] && kill -KILL $pids
 
 	# Remove host-side route and NAT.
 	ip route del "$ns_net/30" dev "veth-$ns_name-host" 2>/dev/null || true
@@ -120,7 +130,7 @@ netns_up() {
 	local wg_cmd="wg-quick"
 	local wg_src="/etc/wireguard/$wg_config.conf"
 	local wg_tmp="/run/netns-${ns_name}-${wg_config}.conf"
-	
+
 	case "$wg_config" in
 		a*)
 			wg_cmd="awg-quick"
@@ -128,7 +138,7 @@ netns_up() {
 			wg_src="/etc/amnezia/amneziawg/$wg_config.conf"
 			;;
 	esac
-	
+
 	umask 077
 	sed '/^[[:space:]]*DNS[[:space:]]*=/d' "$wg_src" > "$wg_tmp" || return 1
 	ip netns exec "$ns_name" "$wg_cmd" up "$wg_tmp"
