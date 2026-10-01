@@ -10,6 +10,7 @@ VPN_SERVERS="buh fmsk imsk nuker"
 IF_NAME="router"
 IP_ADDR="192.168.35.101/24"
 GW="192.168.35.100"
+#DEF_GW="$GW"
 
 DNS_SERVERS="1.1.1.1 8.8.8.8"
 VETH_PREFIX="veth"
@@ -242,14 +243,14 @@ net_physical_create() {
 	ip netns exec "$ns" ip addr add "$IP_ADDR" dev "$iface"
 	ip netns exec "$ns" ip link set "$iface" up
 
+	#[ -n "$DEF_GW" ] && ip netns exec "$ns" ip route add default via "$DEF_GW" dev "$iface"
+	[ -n "$GW" ] || return 0
 	local ip
 	for ip in "${VPN_SERVER_IPS[@]}"; do
 		ip netns exec "$ns" \
 			ip route add "$ip/32" via "$GW" dev "$iface"
 	done
 
-	ip netns exec "$ns" \
-		ip route add default via "$GW" dev "$iface"
 }
 
 net_physical_destroy() {
@@ -259,8 +260,8 @@ net_physical_destroy() {
 	# namespace is deleted. NetworkManager restores its config.
 	ip netns del "$2" 2>/dev/null || true
 
-	nmcli device set "$iface" managed yes 2>/dev/null || true
-	nmcli device connect "$iface" 2>/dev/null || true
+	#nmcli device set "$iface" managed yes 2>/dev/null || true
+	#nmcli device connect "$iface" 2>/dev/null || truen.cs
 }
 
 
@@ -346,6 +347,7 @@ netns_up() {
 	if [ -n "$iface" ]; then
 		echo "Physical interface: $iface"
 		net_physical_create "$ns" "$iface"
+		[ -n "$wg_config" ] || [ -n "$DEF_GW" ] && ip netns exec "$ns" ip route add default via "$DEF_GW" dev "$iface"
 	else
 		echo "Network: $net/30"
 		net_veth_create "$ns" "$net"
