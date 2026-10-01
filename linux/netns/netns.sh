@@ -7,7 +7,7 @@ set -e
 VPN_SERVERS="buh fmsk imsk nuker"
 
 # Physical interface configuration.
-IF_NAME="wan"
+IF_NAME="router"
 IP_ADDR="192.168.35.101/24"
 GW="192.168.35.100"
 
