@@ -6,72 +6,139 @@ set -e
 
 VPN_SERVERS="buh fmsk imsk nuker"
 
+# Physical interface configuration.
+IF_NAME="wan"
+IP_ADDR="192.168.35.101/24"
+GW="192.168.35.100"
+
+DNS_SERVERS="1.1.1.1 8.8.8.8"
+VETH_PREFIX="veth"
+NET_PREFIX="10.200"
+
 [ "$(id -u)" -ne 0 ] && {
 	#echo "Restarting script as root ..."
 	sudo "$0" "$@"
 	exit $?
 }
 
-# sudo netns_create inet 10.200.0.0
-netns_create() {
-	local ns_name="$1"
 
-ip netns exec "$ns_name" true 2>/dev/null && {
-	echo "Namespace already exists: $ns_name" >&2
-	return 1
+# ---------------------------------------------------------------------------
+# Namespace helpers
+# ---------------------------------------------------------------------------
+
+ns_exists() {
+	ip netns exec "$1" true 2>/dev/null
 }
 
-	local ns_net="$2"
-	local ns_host="${ns_net%.*}.1"
-	local ns_ip="${ns_net%.*}.2"
+ns_require_absent() {
+	local ns="$1"
+
+	ns_exists "$ns" && {
+		echo "Namespace already exists: $ns" >&2
+		return 1
+	}
+}
+
+ns_require_present() {
+	local ns="$1"
+
+	ns_exists "$ns" || {
+		echo "Namespace does not exist: $ns" >&2
+		return 1
+	}
+}
+
+ns_init() {
+	local ns="$1"
+
+	ip netns add "$ns"
+	ip netns exec "$ns" ip link set lo up
+}
+
+ns_dns_setup() {
+	local ns="$1"
+	local file="/etc/netns/$ns/resolv.conf"
+
+	mkdir -p "/etc/netns/$ns"
+
+	[ -s "$file" ] || {
+		for dns in $DNS_SERVERS; do
+			printf 'nameserver %s\n' "$dns"
+		done > "$file"
+	}
+}
 
 
-	ip netns add "$ns_name"
+# ---------------------------------------------------------------------------
+# VPN helpers
+# ---------------------------------------------------------------------------
 
-	ip link add "veth-$ns_name" type veth peer name "veth-$ns_name-host"
-	ip link set "veth-$ns_name" netns "$ns_name"
+vpn_resolve_servers() {
+	local server ip
+	VPN_SERVER_IPS=()
 
-	ip addr add "$ns_host/30" dev "veth-$ns_name-host"
-	ip link set "veth-$ns_name-host" up
-
-	ip netns exec "$ns_name" ip link set lo up
-	ip netns exec "$ns_name" ip addr add "$ns_ip/30" dev "veth-$ns_name"
-	ip netns exec "$ns_name" ip link set "veth-$ns_name" up
-
-	local VPN_SERVER_IPS
 	for server in $VPN_SERVERS; do
 		ip=$(getent ahostsv4 "$server" | awk 'NR==1 {print $1}')
+
 		[ -n "$ip" ] || {
 			echo "Cannot resolve VPN server: $server" >&2
-			exit 1
+			return 1
 		}
-		VPN_SERVER_IPS="$VPN_SERVER_IPS $ip"
+
+		VPN_SERVER_IPS+=("$ip")
 	done
-
-	for ip in $VPN_SERVER_IPS; do
-		ip netns exec "$ns_name" ip route add "$ip/32" via "$ns_host" dev "veth-$ns_name"
-	done
-
-	#ip route add "$ns_net/30" dev "veth-$ns_name-host"
-	ip route replace "$ns_net/30" dev "veth-$ns_name-host"
-
-	iptables -t nat -A POSTROUTING -s "$ns_net/30" -o wan -j MASQUERADE
-
-	mkdir -p "/etc/netns/$ns_name"
-	[ -s "/etc/netns/$ns_name/resolv.conf" ] ||
-		printf 'nameserver 1.1.1.1\nnameserver 8.8.8.8\n' > "/etc/netns/$ns_name/resolv.conf"
 }
 
-netns_destroy() {
-	local ns_name="$1"
-	local ns_net="$2"
-	local ns_host="${ns_net%.*}.1"
+vpn_config() {
+	local config="$1"
 
-	# Stop WireGuard/AmneziaWG interfaces running in this namespace.
-	ip netns exec "$ns_name" wg show interfaces |
+	WG_CMD="wg-quick"
+	WG_SRC="/etc/wireguard/$config.conf"
+
+	case "$config" in
+		a*)
+			WG_CMD="awg-quick"
+			WG_SRC="/etc/amnezia/amneziawg/$config.conf"
+			;;
+	esac
+
+	[ -f "$WG_SRC" ] || {
+		echo "VPN config not found: $WG_SRC" >&2
+		return 1
+	}
+}
+
+vpn_start() {
+	local ns="$1"
+	local config="$2"
+	local tmp_dir="/run/netns-$ns"
+	local tmp="$tmp_dir/$config.conf"
+
+	vpn_config "$config"
+	mkdir -p "$tmp_dir"
+
+	umask 077
+	sed '/^[[:space:]]*DNS[[:space:]]*=/d' "$WG_SRC" > "$tmp"
+
+	if ip netns exec "$ns" "$WG_CMD" up "$tmp"; then
+		return 0
+	else
+		local ret=$?
+		rm -f "$tmp"
+		return "$ret"
+	fi
+}
+
+vpn_stop() {
+	local ns="$1"
+	local wg_if wg_cmd wg_src tmp
+	local tmp_dir="/run/netns-$ns"
+
 	while read -r wg_if; do
-		local wg_cmd="wg-quick"
-		local wg_src="/etc/wireguard/$wg_if.conf"
+		[ -n "$wg_if" ] || continue
+
+		wg_cmd="wg-quick"
+		wg_src="/etc/wireguard/$wg_if.conf"
 
 		case "$wg_if" in
 			a*)
@@ -80,98 +147,242 @@ netns_destroy() {
 				;;
 		esac
 
-		ip netns exec "$ns_name" "$wg_cmd" down "$wg_src" 2>/dev/null || true
-	done
+		tmp="$tmp_dir/$wg_if.conf"
+		[ ! -f "$tmp" ] || wg_src="$tmp"
 
-	# Terminate all processes in the namespace.
-	local pids
-	pids=$(ip netns pids "$ns_name")
+		ip netns exec "$ns" \
+			"$wg_cmd" down "$wg_src" 2>/dev/null || true
+	done < <(ip netns exec "$ns" wg show interfaces)
 
-	[ -n "$pids" ] && kill $pids
-	sleep 1
-
-	pids=$(ip netns pids "$ns_name")
-	[ -n "$pids" ] && kill -KILL $pids
-
-	# Remove host-side route and NAT.
-	ip route del "$ns_net/30" dev "veth-$ns_name-host" 2>/dev/null || true
-	iptables -t nat -D POSTROUTING -s "$ns_net/30" -o wan -j MASQUERADE 2>/dev/null || true
-
-	# Removing the namespace also removes its veth side.
-	ip netns del "$ns_name" 2>/dev/null || true
-
-	# Remove the per-namespace DNS configuration.
-	#rm -rf "/etc/netns/$ns_name"
+	rm -rf "$tmp_dir"
 }
 
-netns_up() {
-	local ns_name="$1"
-	local wg_config="$2"
 
-	ip netns exec "$ns_name" true 2>/dev/null && {
-		echo "Namespace already exists: $ns_name" >&2
+# ---------------------------------------------------------------------------
+# Network setup: veth + NAT
+# ---------------------------------------------------------------------------
+
+net_veth_create() {
+	local ns="$1"
+	local net="$2"
+	local host="${net%.*}.1"
+	local addr="${net%.*}.2"
+	local veth="$VETH_PREFIX-$ns"
+	local peer="$veth-host"
+
+	ip link add "$veth" type veth peer name "$peer"
+	ip link set "$veth" netns "$ns"
+
+	ip addr add "$host/30" dev "$peer"
+	ip link set "$peer" up
+
+	ip netns exec "$ns" ip addr add "$addr/30" dev "$veth"
+	ip netns exec "$ns" ip link set "$veth" up
+
+	ip route replace "$net/30" dev "$peer"
+
+	iptables -t nat -A POSTROUTING \
+		-s "$net/30" -o "$IF_NAME" -j MASQUERADE
+
+	vpn_resolve_servers
+
+	local ip
+	for ip in "${VPN_SERVER_IPS[@]}"; do
+		ip netns exec "$ns" \
+			ip route add "$ip/32" via "$host" dev "$veth"
+	done
+}
+
+net_veth_destroy() {
+	local ns="$1"
+	local net="$2"
+	local peer="$VETH_PREFIX-$ns-host"
+
+	[ -n "$net" ] || return 0
+
+	ip route del "$net/30" dev "$peer" 2>/dev/null || true
+
+	iptables -t nat -D POSTROUTING \
+		-s "$net/30" -o "$IF_NAME" -j MASQUERADE 2>/dev/null || true
+}
+
+
+# ---------------------------------------------------------------------------
+# Network setup: physical interface
+# ---------------------------------------------------------------------------
+
+net_physical_create() {
+	local ns="$1"
+	local iface="$2"
+
+	ip link show "$iface" >/dev/null 2>&1 || {
+		echo "Interface does not exist: $iface" >&2
 		return 1
 	}
+
+	vpn_resolve_servers
+
+	ip link set "$iface" netns "$ns"
+
+	ip netns exec "$ns" ip addr flush dev "$iface"
+	ip netns exec "$ns" ip addr add "$IP_ADDR" dev "$iface"
+	ip netns exec "$ns" ip link set "$iface" up
+
+	local ip
+	for ip in "${VPN_SERVER_IPS[@]}"; do
+		ip netns exec "$ns" \
+			ip route add "$ip/32" via "$GW" dev "$iface"
+	done
+
+	ip netns exec "$ns" \
+		ip route add default via "$GW" dev "$iface"
+}
+
+net_physical_destroy() {
+	local iface="$1"
+
+	# The interface returns to the main namespace when the
+	# namespace is deleted. NetworkManager restores its config.
+	ip netns del "$2" 2>/dev/null || true
+
+	nmcli device set "$iface" managed yes 2>/dev/null || true
+	nmcli device connect "$iface" 2>/dev/null || true
+}
+
+
+# ---------------------------------------------------------------------------
+# Network detection and cleanup
+# ---------------------------------------------------------------------------
+
+net_veth_address() {
+	local ns="$1"
+
+	ip netns exec "$ns" ip -4 -o addr show "$VETH_PREFIX-$ns" |
+		awk '{
+			split($4, a, "/")
+			split(a[1], b, ".")
+			print b[1]"."b[2]"."b[3]".0"
+			exit
+		}'
+}
+
+net_physical_detect() {
+	local ns="$1"
+	local iface
+
+	# Identify a non-veth interface that is not a WG tunnel.
+	local wg_interfaces
+	wg_interfaces=$(ip netns exec "$ns" wg show interfaces 2>/dev/null || true)
+
+	while read -r iface; do
+		[ -n "$iface" ] || continue
+		case " $wg_interfaces " in
+			*" $iface "*) continue ;;
+		esac
+
+		case "$iface" in
+			lo|"$VETH_PREFIX"-*) continue ;;
+		esac
+
+		printf '%s\n' "$iface"
+		return 0
+	done < <(ip netns exec "$ns" ip -o link show |
+		awk -F': ' '{sub(/@.*/, "", $2); print $2}')
+
+	return 1
+}
+
+net_destroy() {
+	local ns="$1"
+	local iface="$2"
+	local net="$3"
+
+	vpn_stop "$ns"
+
+	if [ -n "$iface" ]; then
+		net_physical_destroy "$iface" "$ns"
+	else
+		net_veth_destroy "$ns" "$net"
+		ip netns del "$ns" 2>/dev/null || true
+	fi
+}
+
+
+# ---------------------------------------------------------------------------
+# Namespace operations
+# ---------------------------------------------------------------------------
+
+netns_up() {
+	local ns="$1"
+	local wg_config="$2"
+	local iface="$3"
+
+	ns_require_absent "$ns"
 
 	local network_id
 	network_id=$(( $(ip netns list | wc -l) + 1 ))
 
-	local ns_net="10.200.$network_id.0"
-	local ns_host="10.200.$network_id.1"
-	local ns_ip="10.200.$network_id.2"
+	local net="$NET_PREFIX.$network_id.0"
 
-	echo "Creating namespace: $ns_name"
-	echo "Network: $ns_net/30"
+	echo "Creating namespace: $ns"
 
-	netns_create "$ns_name" "$ns_net"
+	ns_init "$ns"
+
+	if [ -n "$iface" ]; then
+		echo "Physical interface: $iface"
+		net_physical_create "$ns" "$iface"
+	else
+		echo "Network: $net/30"
+		net_veth_create "$ns" "$net"
+	fi
+
+	ns_dns_setup "$ns"
 
 	[ -n "$wg_config" ] || return 0
 
-	local wg_cmd="wg-quick"
-	local wg_src="/etc/wireguard/$wg_config.conf"
-	local wg_tmp="/run/netns-${ns_name}-${wg_config}.conf"
-
-	case "$wg_config" in
-		a*)
-			wg_cmd="awg-quick"
-			#wg_src="/etc/amnezia/amneziawg/${wg_config#a}.conf"
-			wg_src="/etc/amnezia/amneziawg/$wg_config.conf"
-			;;
-	esac
-
-	umask 077
-	sed '/^[[:space:]]*DNS[[:space:]]*=/d' "$wg_src" > "$wg_tmp" || return 1
-	ip netns exec "$ns_name" "$wg_cmd" up "$wg_tmp"
-	local ret=$?
-	#cat $wg_tmp
-	rm -f "$wg_tmp"
-	return $ret
+	echo "Starting VPN: $wg_config"
+	vpn_start "$ns" "$wg_config"
 }
 
 netns_down() {
-	local ns_name="$1"
+	local ns="$1"
 
-	ip netns exec "$ns_name" true 2>/dev/null || {
-		echo "Namespace does not exist: $ns_name" >&2
-		return 1
-	}
+	ns_require_present "$ns"
 
-	local ns_net
-	ns_net=$(ip netns exec "$ns_name" \
-		ip -4 addr show "veth-$ns_name" |
-		awk '/inet / {sub(/\/.*/, "", $2); split($2, a, "."); print a[1]"."a[2]"."a[3]".0"}')
+	local iface=""
+	local net=""
 
-	netns_destroy "$ns_name" "$ns_net"
+	iface=$(net_physical_detect "$ns" || true)
+
+	if [ -z "$iface" ]; then
+		net=$(net_veth_address "$ns")
+	fi
+
+	echo "Destroying namespace: $ns"
+	net_destroy "$ns" "$iface" "$net"
 }
+
+
+# ---------------------------------------------------------------------------
+# Command line
+# ---------------------------------------------------------------------------
 
 usage() {
 	cat <<EOF
 Usage:
-  $0 <namespace> up [<wgconfig>]
+  $0 <namespace> up [<wgconfig>] [<iface>]
   $0 <namespace> down
   $0
 
-Without arguments, lists existing network namespaces.
+Examples:
+  $0 inet up
+  $0 inet up wgbf
+  $0 inet up wgbf wan
+  $0 inet up "" wan
+  $0 inet down
+
+Without <iface>, a veth/NAT network is created.
+With <iface>, the physical interface is moved into the namespace.
 EOF
 }
 
@@ -181,8 +392,6 @@ EOF
 	exit 0
 }
 
-
-
 [ "$#" -ge 2 ] || {
 	usage
 	exit 1
@@ -190,16 +399,23 @@ EOF
 
 case "$2" in
 	up)
-		[ "$#" -le 3 ] || usage
-		netns_up "$1" "$3"
+		[ "$#" -le 4 ] || {
+			usage
+			exit 1
+		}
+		netns_up "$1" "${3:-}" "${4:-}"
 		;;
+
 	down)
-		[ "$#" -eq 2 ] || usage
+		[ "$#" -eq 2 ] || {
+			usage
+			exit 1
+		}
 		netns_down "$1"
 		;;
+
 	*)
 		usage
+		exit 1
 		;;
 esac
-
-#ip netns exec "$ns_name" wg-quick up "/etc/wireguard/$wg_config.conf"
