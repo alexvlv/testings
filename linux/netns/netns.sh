@@ -36,7 +36,7 @@ ns_require_absent() {
 	ns_exists "$ns" && {
 		echo "Namespace already exists: $ns" >&2
 		return 1
-	}
+	} || true;
 }
 
 ns_require_present() {
