@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# MPEG-TS PTS analyzer
+# MPEG-TS PTS/PCR analyzer
 # GIT Rev.: $Format:%cd %cn %h %D$
 
 import argparse
@@ -72,12 +72,16 @@ class TsParser:
 class TsAnalyzer:
     def __init__(self, frame_limit=0):
         self.pmt_pid = None
+        self.pcr_pid = None
         self.streams = {}
         self.pes = {}
 
         self.first_pts = None
         self.previous_pts = None
         self.previous_pts_by_type = {}
+
+        self.first_pcr = None
+        self.previous_pcr = None
 
         self.frame_limit = frame_limit
         self.frame_count = 0
@@ -105,6 +109,16 @@ class TsAnalyzer:
 
         if adaptation in (2, 3):
             length = packet[pos]
+
+            if length >= 7 and pid == self.pcr_pid:
+                # adaptation_field_flags:
+                # bit 4 = PCR_flag
+                flags = packet[pos + 1]
+
+                if flags & 0x10:
+                    pcr_data = packet[pos + 2:pos + 8]
+                    self.parse_pcr(pid, pcr_data)
+
             pos += 1 + length
 
         if adaptation == 2 or pos >= TS_SZ:
@@ -180,6 +194,13 @@ class TsAnalyzer:
         end = min(
             pos + 3 + section_length - 4,
             len(payload))
+
+        # PCR_PID is part of the PMT fixed header.
+        self.pcr_pid = (
+            ((payload[pos + 8] & 0x1F) << 8) |
+            payload[pos + 9])
+
+        log.info("PCR PID 0x%04X", self.pcr_pid)
 
         program_info_length = (
             ((payload[pos + 10] & 0x0F) << 8) |
@@ -261,6 +282,43 @@ class TsAnalyzer:
         if pes:
             pes['size'] += len(payload)
 
+    def parse_pcr(self, pid, data):
+        if len(data) != 6:
+            return
+
+        # PCR = PCR_base * 300 + PCR_extension.
+        pcr_base = (
+            (data[0] << 25) |
+            (data[1] << 17) |
+            (data[2] << 9) |
+            (data[3] << 1) |
+            (data[4] >> 7))
+
+        pcr_extension = (
+            ((data[4] & 0x01) << 8) |
+            data[5])
+
+        pcr = pcr_base * 300 + pcr_extension
+
+        if self.first_pcr is None:
+            self.first_pcr = pcr
+
+        pcr_ms = (pcr - self.first_pcr) / 27000.0
+
+        if self.previous_pcr is None:
+            delta_str = '-'
+        else:
+            delta = (pcr - self.previous_pcr) / 27000.0
+            delta_str = '{:+7.3f}'.format(delta)
+
+        print(
+            "P 0x{0:04X} {1:8.3f} {2:>8}".format(
+                pid,
+                pcr_ms,
+                delta_str))
+
+        self.previous_pcr = pcr
+
     def finish_pes(self, pid):
         pes = self.pes.pop(pid, None)
 
@@ -304,6 +362,7 @@ class TsAnalyzer:
 
         if not self.header_printed:
             print("    Size PTS       dType    dAny")
+            print("PCR PID    PCR       dPCR")
             self.header_printed = True
 
         print(
@@ -334,7 +393,7 @@ class TsAnalyzer:
 
 def main():
     parser = argparse.ArgumentParser(
-        description='MPEG-TS PTS analyzer')
+        description='MPEG-TS PTS/PCR analyzer')
 
     parser.add_argument(
         '-i', '--input',
@@ -387,7 +446,7 @@ def main():
         return 1
 
     log.info(
-        "MPEG-TS PTS analyzer, input: %s, size: %d bytes",
+        "MPEG-TS PTS/PCR analyzer, input: %s, size: %d bytes",
         infilename, size)
 
     with open(infilename, 'rb') as fin:
