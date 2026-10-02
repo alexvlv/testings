@@ -31,16 +31,15 @@ STREAM_TYPES = {
     0x84: 'A',       # DaVinci raw audio, S16_LE stereo 16 kHz
 }
 
-# PES stream_id ranges.
-PES_STREAM_VIDEO = 0xE0
-PES_STREAM_AUDIO = 0xC0
-
 
 class TsParser:
     def __init__(self, fin, analyzer):
         self.analyzer = analyzer
         self.fin = fin
-        self.inmm = mmap.mmap(fin.fileno(), length=0, access=mmap.ACCESS_READ)
+        self.inmm = mmap.mmap(
+            fin.fileno(),
+            length=0,
+            access=mmap.ACCESS_READ)
         self.fsize = self.inmm.size()
 
     def process(self):
@@ -64,11 +63,14 @@ class TsParser:
             pos += TS_SZ
             packets += 1
 
+            if self.analyzer.done():
+                break
+
         log.info("Processed %d TS packets", packets)
 
 
 class TsAnalyzer:
-    def __init__(self):
+    def __init__(self, frame_limit=0):
         self.pmt_pid = None
         self.streams = {}
         self.pes = {}
@@ -76,6 +78,15 @@ class TsAnalyzer:
         self.first_pts = None
         self.previous_pts = None
         self.previous_pts_by_type = {}
+
+        self.frame_limit = frame_limit
+        self.frame_count = 0
+        self.header_printed = False
+
+    def done(self):
+        return (
+            self.frame_limit > 0 and
+            self.frame_count >= self.frame_limit)
 
     def packet(self, packet, offset):
         if packet[0] != SYNC:
@@ -106,7 +117,6 @@ class TsAnalyzer:
 
         elif pid == self.pmt_pid:
             self.parse_pmt(payload, pusi)
-            print("    Size PTS       dType    dAny")
 
         elif pid in self.streams:
             self.parse_pes(pid, payload, pusi, offset)
@@ -233,11 +243,8 @@ class TsAnalyzer:
             if header_size > len(payload):
                 return
 
-            # Prefer PES stream_id classification.
-            media_type = self.classify_stream_id(stream_id)
-
-            if media_type is None:
-                media_type = self.streams[pid]['type']
+            # PMT stream type is authoritative.
+            media_type = self.streams[pid]['type']
 
             self.pes[pid] = {
                 'type': media_type,
@@ -295,6 +302,10 @@ class TsAnalyzer:
         else:
             delta_any_str = '{:+7.3f}'.format(delta_any)
 
+        if not self.header_printed:
+            print("    Size PTS       dType    dAny")
+            self.header_printed = True
+
         print(
             "{0} {1:6d} {2:8.3f} {3:>8} {4:>8}".format(
                 media_type,
@@ -303,18 +314,9 @@ class TsAnalyzer:
                 delta_type_str,
                 delta_any_str))
 
+        self.frame_count += 1
         self.previous_pts = pts
         self.previous_pts_by_type[media_type] = pts
-
-    @staticmethod
-    def classify_stream_id(stream_id):
-        if 0xE0 <= stream_id <= 0xEF:
-            return 'V'
-
-        if 0xC0 <= stream_id <= 0xDF:
-            return 'A'
-
-        return None
 
     @staticmethod
     def decode_pts(data):
@@ -340,6 +342,12 @@ def main():
         help='Input TS file [mpeg.ts]')
 
     parser.add_argument(
+        '-n', '--frames',
+        type=int,
+        default=0,
+        help='Show first N A/V frames (0 = all)')
+
+    parser.add_argument(
         '-l', '--loglevel',
         default='INFO',
         help='Log level [INFO]')
@@ -351,6 +359,9 @@ def main():
                 '$Format:%cd %cn %h %D$'.replace('%', '%%'))
 
     args = parser.parse_args()
+
+    if args.frames < 0:
+        parser.error('-n/--frames must be >= 0')
 
     logging.basicConfig(
         level=args.loglevel,
@@ -380,7 +391,7 @@ def main():
         infilename, size)
 
     with open(infilename, 'rb') as fin:
-        analyzer = TsAnalyzer()
+        analyzer = TsAnalyzer(args.frames)
         TsParser(fin, analyzer).process()
         analyzer.finish()
 
