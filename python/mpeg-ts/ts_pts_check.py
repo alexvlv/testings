@@ -76,7 +76,7 @@ class TsAnalyzer:
         self.streams = {}
         self.pes = {}
 
-        self.first_pts = None
+        self.pts_origin = None
         self.previous_pts = None
         self.previous_pts_by_type = {}
 
@@ -303,6 +303,11 @@ class TsAnalyzer:
         if self.first_pcr is None:
             self.first_pcr = pcr
 
+        # Use the first PCR as the PTS time origin whenever
+        # it is available before the first A/V PTS.
+        if self.pts_origin is None:
+            self.pts_origin = pcr
+
         pcr_ms = (pcr - self.first_pcr) / 27000.0
 
         if self.previous_pcr is None:
@@ -332,11 +337,13 @@ class TsAnalyzer:
 
         pts = pes['pts']
 
-        # Establish the common PTS origin from the first A/V packet.
-        if self.first_pts is None:
-            self.first_pts = pts
+        # If no PCR was seen before the first A/V PTS,
+        # use that PTS as the fallback origin.
+        if self.pts_origin is None:
+            self.pts_origin = pts * 300
 
-        pts_ms = (pts - self.first_pts) / 90.0
+        pts_27m = pts * 300
+        pts_ms = (pts_27m - self.pts_origin) / 27000.0
 
         previous_type_pts = self.previous_pts_by_type.get(media_type)
 
