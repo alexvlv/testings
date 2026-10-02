@@ -302,6 +302,8 @@ class TsAnalyzer:
 
         if self.first_pcr is None:
             self.first_pcr = pcr
+            # Dirty PCR hack
+            self.first_pcr += 20 * 27000
 
         pcr_ms = (pcr - self.first_pcr) / 27000.0
 
@@ -331,6 +333,9 @@ class TsAnalyzer:
             return
 
         pts = pes['pts']
+        # Dirty AUDIO PTS hack
+        if media_type == 'A':
+            pts += 20 * 90
 
         # Establish the common PTS origin from the first A/V packet.
         if self.first_pts is None:
