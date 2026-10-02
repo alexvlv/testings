@@ -106,6 +106,7 @@ class TsAnalyzer:
 
         elif pid == self.pmt_pid:
             self.parse_pmt(payload, pusi)
+            print("    Size PTS       dType    dAny")
 
         elif pid in self.streams:
             self.parse_pes(pid, payload, pusi, offset)
