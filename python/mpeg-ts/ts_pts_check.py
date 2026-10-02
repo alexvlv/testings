@@ -336,6 +336,10 @@ class TsAnalyzer:
             return
 
         pts = pes['pts']
+# Encoder assigns Audio PTS one 20-ms frame too early.
+# Compensate for this known encoder bug.
+        if media_type == 'A':
+            pts += 20 * 90
 
         # If no PCR was seen before the first A/V PTS,
         # use that PTS as the fallback origin.
