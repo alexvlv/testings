@@ -72,7 +72,10 @@ class TsAnalyzer:
         self.pmt_pid = None
         self.streams = {}
         self.pes = {}
-        self.pts_state = {}
+
+        self.first_pts = None
+        self.previous_pts = None
+        self.previous_pts_by_type = {}
 
     def packet(self, packet, offset):
         if packet[0] != SYNC:
@@ -253,12 +256,7 @@ class TsAnalyzer:
     def finish_pes(self, pid):
         pes = self.pes.pop(pid, None)
 
-        if not pes:
-            return
-
-        # We are interested only in PES packets having PTS
-        # and recognized as audio/video.
-        if pes['pts'] is None:
+        if not pes or pes['pts'] is None:
             return
 
         media_type = pes['type']
@@ -268,36 +266,44 @@ class TsAnalyzer:
 
         pts = pes['pts']
 
-        if media_type not in self.pts_state:
-            self.pts_state[media_type] = {
-                'first': pts,
-                'previous': None,
-            }
+        # Establish the common PTS origin from the first A/V packet.
+        if self.first_pts is None:
+            self.first_pts = pts
 
-        state = self.pts_state[media_type]
+        pts_ms = (pts - self.first_pts) / 90.0
 
-        pts_ms = (pts - state['first']) / 90.0
+        previous_type_pts = self.previous_pts_by_type.get(media_type)
 
-        if state['previous'] is None:
-            delta = None
+        if previous_type_pts is None:
+            delta_type = None
         else:
-            delta = (pts - state['previous']) / 90.0
+            delta_type = (pts - previous_type_pts) / 90.0
 
-        if delta is None:
-            print(
-                "{0} {1:6d} {2:8.3f}    -".format(
-                    media_type,
-                    pes['size'],
-                    pts_ms))
+        if self.previous_pts is None:
+            delta_any = None
         else:
-            print(
-                "{0} {1:6d} {2:8.3f} {3:+8.3f}".format(
-                    media_type,
-                    pes['size'],
-                    pts_ms,
-                    delta))
+            delta_any = (pts - self.previous_pts) / 90.0
 
-        state['previous'] = pts
+        if delta_type is None:
+            delta_type_str = '-'
+        else:
+            delta_type_str = '{:+7.3f}'.format(delta_type)
+
+        if delta_any is None:
+            delta_any_str = '-'
+        else:
+            delta_any_str = '{:+7.3f}'.format(delta_any)
+
+        print(
+            "{0} {1:6d} {2:8.3f} {3:>8} {4:>8}".format(
+                media_type,
+                pes['size'],
+                pts_ms,
+                delta_type_str,
+                delta_any_str))
+
+        self.previous_pts = pts
+        self.previous_pts_by_type[media_type] = pts
 
     @staticmethod
     def classify_stream_id(stream_id):
