@@ -6,11 +6,13 @@ import argparse
 import logging
 import mmap
 import os
-import struct
 
 TS_SZ = 188
 SYNC = 0x47
 
+STREAM_TYPE_RAW_AUDIO = 0x84
+
+# MPEG-TS stream_type values.
 STREAM_TYPES = {
     0x01: 'V',       # MPEG-1 video
     0x02: 'V',       # MPEG-2 video
@@ -18,15 +20,20 @@ STREAM_TYPES = {
     0x1B: 'V',       # H.264/AVC
     0x24: 'V',       # H.265/HEVC
     0x25: 'V',       # H.265 MVC
-    0x42: 'V',       # MPEG-4 MVC
-    0x80: 'V',       # MPEG-2 video, private
+
     0x03: 'A',       # MPEG-1 audio
     0x04: 'A',       # MPEG-2 audio
     0x0F: 'A',       # AAC
     0x11: 'A',       # AAC LATM
     0x81: 'A',       # AC-3
     0x87: 'A',       # E-AC-3
+
+    0x84: 'A',       # DaVinci raw audio, S16_LE stereo 16 kHz
 }
+
+# PES stream_id ranges.
+PES_STREAM_VIDEO = 0xE0
+PES_STREAM_AUDIO = 0xC0
 
 
 class TsParser:
@@ -45,11 +52,15 @@ class TsParser:
                 pos += 1
                 continue
 
-            if pos + TS_SZ < self.fsize and self.inmm[pos + TS_SZ] != SYNC:
-                pos += 1
-                continue
+            if pos + TS_SZ < self.fsize:
+                if self.inmm[pos + TS_SZ] != SYNC:
+                    pos += 1
+                    continue
 
-            self.analyzer.packet(self.inmm[pos:pos + TS_SZ], pos)
+            self.analyzer.packet(
+                self.inmm[pos:pos + TS_SZ],
+                pos)
+
             pos += TS_SZ
             packets += 1
 
@@ -60,16 +71,17 @@ class TsAnalyzer:
     def __init__(self):
         self.pmt_pid = None
         self.streams = {}
-        self.psi = {}
         self.pes = {}
+        self.pts_state = {}
 
     def packet(self, packet, offset):
         if packet[0] != SYNC:
             return
 
         b1, b2, b3 = packet[1:4]
+
         pusi = bool(b1 & 0x40)
-        pid = ((b1 & 0x1f) << 8) | b2
+        pid = ((b1 & 0x1F) << 8) | b2
         adaptation = (b3 >> 4) & 3
 
         if adaptation == 0:
@@ -88,8 +100,10 @@ class TsAnalyzer:
 
         if pid == 0:
             self.parse_pat(payload, pusi)
+
         elif pid == self.pmt_pid:
             self.parse_pmt(payload, pusi)
+
         elif pid in self.streams:
             self.parse_pes(pid, payload, pusi, offset)
 
@@ -106,17 +120,28 @@ class TsAnalyzer:
         if payload[pos] != 0x00:
             return
 
-        section_length = ((payload[pos + 1] & 0x0f) << 8) | payload[pos + 2]
-        end = min(pos + 3 + section_length - 4, len(payload))
+        section_length = (
+            ((payload[pos + 1] & 0x0F) << 8) |
+            payload[pos + 2])
+
+        end = min(
+            pos + 3 + section_length - 4,
+            len(payload))
 
         pos += 8
 
         while pos + 4 <= end:
-            program = (payload[pos] << 8) | payload[pos + 1]
-            pid = ((payload[pos + 2] & 0x1f) << 8) | payload[pos + 3]
+            program = (
+                (payload[pos] << 8) |
+                payload[pos + 1])
+
+            pid = (
+                ((payload[pos + 2] & 0x1F) << 8) |
+                payload[pos + 3])
 
             if program != 0:
                 self.pmt_pid = pid
+                log.info("PMT PID 0x%04X", pid)
                 return
 
             pos += 4
@@ -134,31 +159,44 @@ class TsAnalyzer:
         if payload[pos] != 0x02:
             return
 
-        section_length = ((payload[pos + 1] & 0x0f) << 8) | payload[pos + 2]
-        end = min(pos + 3 + section_length - 4, len(payload))
+        section_length = (
+            ((payload[pos + 1] & 0x0F) << 8) |
+            payload[pos + 2])
+
+        end = min(
+            pos + 3 + section_length - 4,
+            len(payload))
 
         program_info_length = (
-            ((payload[pos + 10] & 0x0f) << 8) |
-            payload[pos + 11]
-        )
+            ((payload[pos + 10] & 0x0F) << 8) |
+            payload[pos + 11])
 
         pos += 12 + program_info_length
 
         while pos + 5 <= end:
             stream_type = payload[pos]
-            pid = ((payload[pos + 1] & 0x1f) << 8) | payload[pos + 2]
+
+            pid = (
+                ((payload[pos + 1] & 0x1F) << 8) |
+                payload[pos + 2])
+
             es_info_length = (
-                ((payload[pos + 3] & 0x0f) << 8) |
-                payload[pos + 4]
-            )
+                ((payload[pos + 3] & 0x0F) << 8) |
+                payload[pos + 4])
 
-            stream_class = STREAM_TYPES.get(stream_type)
+            media_type = STREAM_TYPES.get(
+                stream_type, '?')
 
-            if stream_class:
-                self.streams[pid] = stream_class
-                log.debug(
-                    "Found %s PID 0x%04X, stream_type 0x%02X",
-                    stream_class, pid, stream_type)
+            self.streams[pid] = {
+                'stream_type': stream_type,
+                'type': media_type,
+            }
+
+            log.info(
+                "Found PID 0x%04X, stream_type 0x%02X (%s)",
+                pid,
+                stream_type,
+                media_type)
 
             pos += 5 + es_info_length
 
@@ -173,81 +211,112 @@ class TsAnalyzer:
                 return
 
             stream_id = payload[3]
-            pes_length = (payload[4] << 8) | payload[5]
 
             flags = payload[7]
             header_length = payload[8]
 
-            if not (flags & 0x80):
-                pts = None
-            else:
+            pts = None
+
+            if flags & 0x80:
                 if len(payload) < 14:
                     return
+
                 pts = self.decode_pts(payload[9:14])
 
-            data_start = 9 + header_length
+            # PES header occupies 9 + header_length bytes.
+            header_size = 9 + header_length
+
+            if header_size > len(payload):
+                return
+
+            # Prefer PES stream_id classification.
+            media_type = self.classify_stream_id(stream_id)
+
+            if media_type is None:
+                media_type = self.streams[pid]['type']
 
             self.pes[pid] = {
-                'type': self.streams[pid],
-                'size': max(0, len(payload) - data_start),
+                'type': media_type,
+                'size': len(payload) - header_size,
                 'pts': pts,
-                'offset': offset,
                 'stream_id': stream_id,
-                'pes_length': pes_length,
+                'offset': offset,
             }
+
             return
 
         pes = self.pes.get(pid)
+
         if pes:
             pes['size'] += len(payload)
 
     def finish_pes(self, pid):
         pes = self.pes.pop(pid, None)
-        if not pes or pes['pts'] is None:
+
+        if not pes:
             return
 
-        stream_type = pes['type']
+        # We are interested only in PES packets having PTS
+        # and recognized as audio/video.
+        if pes['pts'] is None:
+            return
+
+        media_type = pes['type']
+
+        if media_type not in ('A', 'V'):
+            return
+
         pts = pes['pts']
 
-        state = getattr(self, 'pts_state', None)
-        if state is None:
-            self.pts_state = {}
-            state = self.pts_state
-
-        if stream_type not in state:
-            state[stream_type] = {
+        if media_type not in self.pts_state:
+            self.pts_state[media_type] = {
                 'first': pts,
                 'previous': None,
             }
 
-        stream = state[stream_type]
+        state = self.pts_state[media_type]
 
-        pts_ms = (pts - stream['first']) / 90.0
+        pts_ms = (pts - state['first']) / 90.0
 
-        if stream['previous'] is None:
+        if state['previous'] is None:
             delta = None
         else:
-            delta = (pts - stream['previous']) / 90.0
+            delta = (pts - state['previous']) / 90.0
 
         if delta is None:
-            print("{0} {1:6d} {2:7.3f}    -".format(
-                stream_type, pes['size'], pts_ms))
+            print(
+                "{0} {1:6d} {2:8.3f}    -".format(
+                    media_type,
+                    pes['size'],
+                    pts_ms))
         else:
-            print("{0} {1:6d} {2:7.3f} {3:+7.3f}".format(
-                stream_type, pes['size'], pts_ms, delta))
+            print(
+                "{0} {1:6d} {2:8.3f} {3:+8.3f}".format(
+                    media_type,
+                    pes['size'],
+                    pts_ms,
+                    delta))
 
-        stream['previous'] = pts
+        state['previous'] = pts
+
+    @staticmethod
+    def classify_stream_id(stream_id):
+        if 0xE0 <= stream_id <= 0xEF:
+            return 'V'
+
+        if 0xC0 <= stream_id <= 0xDF:
+            return 'A'
+
+        return None
 
     @staticmethod
     def decode_pts(data):
-        # 0010 PTS[32..30] 1 PTS[29..15] 1 PTS[14..0] 1
         return (
-            ((data[0] >> 1) & 0x07) << 30 |
+            (((data[0] >> 1) & 0x07) << 30) |
             (data[1] << 22) |
             ((data[2] >> 1) << 15) |
             (data[3] << 7) |
-            (data[4] >> 1)
-        )
+            (data[4] >> 1))
 
     def finish(self):
         for pid in list(self.pes):
@@ -257,14 +326,17 @@ class TsAnalyzer:
 def main():
     parser = argparse.ArgumentParser(
         description='MPEG-TS PTS analyzer')
+
     parser.add_argument(
         '-i', '--input',
         default='mpeg.ts',
         help='Input TS file [mpeg.ts]')
+
     parser.add_argument(
         '-l', '--loglevel',
         default='INFO',
         help='Log level [INFO]')
+
     parser.add_argument(
         '-v', '--version',
         action='version',
@@ -291,8 +363,9 @@ def main():
         return 1
 
     if size < TS_SZ:
-        log.error("Error: Input file [%s] too small: %d bytes",
-                  infilename, size)
+        log.error(
+            "Error: Input file [%s] too small: %d bytes",
+            infilename, size)
         return 1
 
     log.info(
