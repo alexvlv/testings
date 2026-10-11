@@ -50,14 +50,14 @@ ns_kill_processes() {
 	local pids
 
 	pids=$(ip netns pids "$ns_name" | tr '\n' ' ')
-	echo "Terminating $pids ..."
-	[ -n "$pids" ] && kill $pids
-
-	sleep 1
-
+	[ -n "$pids" ] && {
+		echo "Terminating $pids ...";
+		kill $pids;
+		sleep 1;
+	}
 	pids=$(ip netns pids "$ns_name" | tr '\n' ' ')
-	echo "Killing $pids ..."
-	[ -n "$pids" ] && kill -KILL $pids
+	[ -n "$pids" ] && { echo "Killing $pids ..."; sleep 1; kill -KILL $pids; }
+	return 0
 }
 
 ns_dns_setup() {
@@ -189,8 +189,6 @@ netns_up() {
 	ip netns exec "$ns" ip addr add "$IP_ADDR" dev "$iface"
 	ip netns exec "$ns" ip link set "$iface" up
 
-	ip netns exec "$ns" ip addr show
-
 	ns_dns_setup "$ns"
 
 	vpn_resolve_servers
@@ -200,14 +198,19 @@ netns_up() {
 			ip route add "$ip/32" via "$GW" dev "$iface"
 	done
 
-	[ -n "$wg_config" ] || [ -n "$GW" ] && ip netns exec "$ns" ip route add default via "$GW" dev "$iface"
-	ip netns exec "$ns" ip route show
+	[ -n "$wg_config" ] || [ -n "$GW" ] && {
+		echo "Setting default gateway: $GW ..."
+		ip netns exec "$ns" ip route add default via "$GW" dev "$iface"
+	}
 
+	ip netns exec "$ns" ip addr show
+	ip netns exec "$ns" ip route show
 	ip netns list
+
 	[ -n "$wg_config" ] || return 0
 
-	#echo "Starting VPN: $wg_config"
-	#vpn_start "$ns" "$wg_config"
+	echo "Starting VPN: $wg_config"
+	vpn_start "$ns" "$wg_config"
 }
 
 netns_down() {
@@ -221,6 +224,7 @@ netns_down() {
 	ns_kill_processes "$ns"
 
 	ip netns del "$ns"
+	echo "Done!"
 	ip netns list
 
 	#nmcli device set "$iface" managed yes 2>/dev/null || true
@@ -245,7 +249,7 @@ netns_down() {
 case "$1" in
 	up)
 		#netns_up "$1" "${3:-}" "${4:-}"
-		netns_up "$NSNAME" "$IF_NAME"
+		netns_up "$NSNAME" "$IF_NAME" ${2:-}
 		;;
 
 	down)
