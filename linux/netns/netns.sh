@@ -8,6 +8,7 @@ set -e
 IF_NAME="router"
 IP_ADDR="192.168.35.102/24"
 GW="192.168.35.100"
+DEFAULT_GW="$GW"
 NSNAME="net"
 VPN_SERVERS="buh fmsk imsk"
 DNS_SERVERS="8.8.8.8 9.9.9.9"
@@ -198,9 +199,10 @@ netns_up() {
 			ip route add "$ip/32" via "$GW" dev "$iface"
 	done
 
-	[ -n "$wg_config" ] || [ -n "$GW" ] && {
-		echo "Setting default gateway: $GW ..."
-		ip netns exec "$ns" ip route add default via "$GW" dev "$iface"
+	[ -n "$wg_config" ] || {
+		[ -n "$DEFAULT_GW" ] && \
+		echo "Setting default gateway: $DEFAULT_GW ..." && \
+		ip netns exec "$ns" ip route add default via "$DEFAULT_GW" dev "$iface"
 	}
 
 	ip netns exec "$ns" ip addr show
