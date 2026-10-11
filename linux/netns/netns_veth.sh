@@ -1,0 +1,206 @@
+#!/usr/bin/env bash
+
+set -e
+
+IF_NAME="router"
+VPN_SERVERS="buh fmsk imsk nuker"
+
+[ "$(id -u)" -ne 0 ] && {
+	#echo "Restarting script as root ..."
+	sudo "$0" "$@"
+	exit $?
+}
+
+# sudo netns_create inet 10.200.0.0
+netns_create() {
+	local ns_name="$1"
+
+ip netns exec "$ns_name" true 2>/dev/null && {
+	echo "Namespace already exists: $ns_name" >&2
+	return 1
+}
+
+	local ns_net="$2"
+	local ns_host="${ns_net%.*}.1"
+	local ns_ip="${ns_net%.*}.2"
+
+
+	ip netns add "$ns_name"
+
+	ip link add "veth-$ns_name" type veth peer name "veth-$ns_name-host"
+	ip link set "veth-$ns_name" netns "$ns_name"
+
+	ip addr add "$ns_host/30" dev "veth-$ns_name-host"
+	ip link set "veth-$ns_name-host" up
+
+	ip netns exec "$ns_name" ip link set lo up
+	ip netns exec "$ns_name" ip addr add "$ns_ip/30" dev "veth-$ns_name"
+	ip netns exec "$ns_name" ip link set "veth-$ns_name" up
+
+	local VPN_SERVER_IPS
+	for server in $VPN_SERVERS; do
+		ip=$(getent ahostsv4 "$server" | awk 'NR==1 {print $1}')
+		[ -n "$ip" ] || {
+			echo "Cannot resolve VPN server: $server" >&2
+			exit 1
+		}
+		VPN_SERVER_IPS="$VPN_SERVER_IPS $ip"
+	done
+
+	for ip in $VPN_SERVER_IPS; do
+		ip netns exec "$ns_name" ip route add "$ip/32" via "$ns_host" dev "veth-$ns_name"
+	done
+
+	#ip route add "$ns_net/30" dev "veth-$ns_name-host"
+	ip route replace "$ns_net/30" dev "veth-$ns_name-host"
+
+	iptables -t nat -A POSTROUTING -s "$ns_net/30" -o "$IF_NAME" -j MASQUERADE
+
+	mkdir -p "/etc/netns/$ns_name"
+	[ -s "/etc/netns/$ns_name/resolv.conf" ] ||
+		printf 'nameserver 8.8.8.8\n' > "/etc/netns/$ns_name/resolv.conf"
+
+		#printf 'nameserver 1.1.1.1\nnameserver 8.8.8.8\n' > "/etc/netns/$ns_name/resolv.conf"
+}
+
+netns_destroy() {
+	local ns_name="$1"
+	local ns_net="$2"
+	local ns_host="${ns_net%.*}.1"
+
+	# Stop WireGuard/AmneziaWG interfaces running in this namespace.
+	ip netns exec "$ns_name" wg show interfaces |
+	while read -r wg_if; do
+		local wg_cmd="wg-quick"
+		local wg_src="/etc/wireguard/$wg_if.conf"
+
+		case "$wg_if" in
+			a*)
+				wg_cmd="awg-quick"
+				wg_src="/etc/amnezia/amneziawg/$wg_if.conf"
+				;;
+		esac
+
+		ip netns exec "$ns_name" "$wg_cmd" down "$wg_src" 2>/dev/null || true
+	done
+
+	# Terminate all processes in the namespace.
+	local pids
+	pids=$(ip netns pids "$ns_name")
+
+	[ -n "$pids" ] && kill $pids
+	sleep 1
+
+	pids=$(ip netns pids "$ns_name")
+	[ -n "$pids" ] && kill -KILL $pids
+
+	# Remove host-side route and NAT.
+	ip route del "$ns_net/30" dev "veth-$ns_name-host" 2>/dev/null || true
+	iptables -t nat -D POSTROUTING -s "$ns_net/30" -o "$IF_NAME" -j MASQUERADE 2>/dev/null || true
+
+	# Removing the namespace also removes its veth side.
+	ip netns del "$ns_name" 2>/dev/null || true
+
+	# Remove the per-namespace DNS configuration.
+	#rm -rf "/etc/netns/$ns_name"
+}
+
+netns_up() {
+	local ns_name="$1"
+	local wg_config="$2"
+
+	ip netns exec "$ns_name" true 2>/dev/null && {
+		echo "Namespace already exists: $ns_name" >&2
+		return 1
+	}
+
+	local network_id
+	network_id=$(( $(ip netns list | wc -l) + 1 ))
+
+	local ns_net="10.200.$network_id.0"
+	local ns_host="10.200.$network_id.1"
+	local ns_ip="10.200.$network_id.2"
+
+	echo "Creating namespace: $ns_name"
+	echo "Network: $ns_net/30"
+
+	netns_create "$ns_name" "$ns_net"
+
+	[ -n "$wg_config" ] || return 0
+
+	local wg_cmd="wg-quick"
+	local wg_src="/etc/wireguard/$wg_config.conf"
+	local wg_tmp="/run/netns-${ns_name}-${wg_config}.conf"
+
+	case "$wg_config" in
+		a*)
+			wg_cmd="awg-quick"
+			#wg_src="/etc/amnezia/amneziawg/${wg_config#a}.conf"
+			wg_src="/etc/amnezia/amneziawg/$wg_config.conf"
+			;;
+	esac
+
+	umask 077
+	sed '/^[[:space:]]*DNS[[:space:]]*=/d' "$wg_src" > "$wg_tmp" || return 1
+	ip netns exec "$ns_name" "$wg_cmd" up "$wg_tmp"
+	local ret=$?
+	#cat $wg_tmp
+	rm -f "$wg_tmp"
+	return $ret
+}
+
+netns_down() {
+	local ns_name="$1"
+
+	ip netns exec "$ns_name" true 2>/dev/null || {
+		echo "Namespace does not exist: $ns_name" >&2
+		return 1
+	}
+
+	local ns_net
+	ns_net=$(ip netns exec "$ns_name" \
+		ip -4 addr show "veth-$ns_name" |
+		awk '/inet / {sub(/\/.*/, "", $2); split($2, a, "."); print a[1]"."a[2]"."a[3]".0"}')
+
+	netns_destroy "$ns_name" "$ns_net"
+}
+
+usage() {
+	cat <<EOF
+Usage:
+  $0 <namespace> up [<wgconfig>]
+  $0 <namespace> down
+  $0
+
+Without arguments, lists existing network namespaces.
+EOF
+}
+
+[ "$#" -eq 0 ] && {
+	#ip netns identify $$
+	ip netns list
+	exit 0
+}
+
+
+
+[ "$#" -ge 2 ] || {
+	usage
+	exit 1
+}
+
+case "$2" in
+	up)
+		[ "$#" -le 3 ] || usage
+		netns_up "$1" "$3"
+		;;
+	down)
+		[ "$#" -eq 2 ] || usage
+		netns_down "$1"
+		;;
+	*)
+		usage
+		;;
+esac
+
+#ip netns exec "$ns_name" wg-quick up "/etc/wireguard/$wg_config.conf"
