@@ -6,12 +6,12 @@ set -e
 
 # Physical interface configuration.
 IF_NAME="router"
-IP_ADDR="192.168.35.102/24"
+IP_ADDR="192.168.35.101/24"
 GW="192.168.35.100"
 DEFAULT_GW="$GW"
 NSNAME="net"
 VPN_SERVERS="buh fmsk imsk"
-DNS_SERVERS="8.8.8.8 9.9.9.9"
+DNS_SERVERS="9.9.9.11 94.140.14.14"
 
 [ "$(id -u)" -ne 0 ] && {
 	#echo "Restarting script as root ..."
