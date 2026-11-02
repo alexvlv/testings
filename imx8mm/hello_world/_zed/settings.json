@@ -1,0 +1,21 @@
+{
+  "lsp": {
+    "clangd": {
+      "binary": {
+        "arguments": [
+          "--query-driver=/tools/fsl-imx-xwayland/5.15.71-2.2.0-kirkstone/sysroots/x86_64-pokysdk-linux/usr/bin/aarch64-poky-linux/aarch64-poky-linux-*"
+        ]
+      }
+    }
+  },
+  "file_scan_exclusions": [
+    "**/*.o",
+    "**/*.d",
+    "**/obj*"
+  ],
+  "search": {
+    "exclude_patterns": [
+      "**/*.o"
+    ]
+  }
+}
