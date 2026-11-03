@@ -1,0 +1,19 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/aarch64-linux-gnu-gcc",
+      "-pipe",
+      "-Wall",
+      "-ggdb",
+      "-c",
+      "-I/work/imx8/git/ftdi2usb",
+      "-I/work/imx8/git/ftdi2usb/",
+      "-o",
+      "/work/imx8/git/ftdi2usb/obj-aarch64/main.o",
+      "main.c"
+    ],
+    "directory": "/work/imx8/git/ftdi2usb",
+    "file": "/work/imx8/git/ftdi2usb/main.c",
+    "output": "/work/imx8/git/ftdi2usb/obj-aarch64/main.o"
+  }
+]
