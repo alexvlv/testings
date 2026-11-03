@@ -104,23 +104,25 @@ clean:
 
 endif # ARCH
 
-
 $(BINARY): $(BINARY)-unstripped
 	@echo Strip `basename $@` from $^ ...
 	$(QUIET) $(STRIP) -o $@ $^
 
-$(BINARY)-unstripped: .git.h $(obj_dir) $(OBJECTS)
+$(BINARY)-unstripped: $(BUILDDIR)/.git.h $(obj_dir) $(OBJECTS)
 	@echo Linking $(ARCH) `basename $@` from $^...
-	$(QUIET)  $(CC) $(OBJECTS)  $(LDFLAGS) $(LIBS) -o $@
+	$(QUIET) $(CC) $(OBJECTS)  $(LDFLAGS) $(LIBS) -o $@
 
-.PHONY: git
-git:
+.PHONY: git git_clean
+git: git_clean $(BUILDDIR)/.git.h
+
+git_clean:
 	$(QUIET) rm -f $(BUILDDIR)/.git.h
-	$(QUIET) $(MAKE) -C $(MAKEFILE_DIR) O=$(BUILDDIR) .git.h
 
-.git.h:
+$(BUILDDIR)/.git.h:
+	$(eval GIT_REV := $(shell $(call gitrev,$(MAKEFILE_DIR))))
+	$(info $(GIT_REV))
 	$(file >$@,#ifndef GIT_REVISION)
-	$(file >>$@,#define GIT_REVISION "$(shell $(call gitrev,$(MAKEFILE_DIR)))")
+	$(file >>$@,#define GIT_REVISION "$(GIT_REV)")
 	$(file >>$@,#endif)
 
 .PHONY: distclean
